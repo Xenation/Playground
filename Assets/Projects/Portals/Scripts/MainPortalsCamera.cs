@@ -10,6 +10,7 @@ namespace Playground.Portals {
 			RenderTexture tmp = RenderTexture.GetTemporary(source.width, source.height, 24);
 			Graphics.Blit(source, tmp, portalRedPost);
 			Graphics.Blit(tmp, destination, portalBluePost);
+			tmp.Release();
 		}
 
 	}
