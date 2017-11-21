@@ -14,6 +14,7 @@ namespace Playground.Others {
 		}
 
 		public void OnRenderImage(RenderTexture source, RenderTexture destination) {
+			if (postEffect == null) return;
 			Graphics.Blit(source, destination, postEffect);
 		}
 
