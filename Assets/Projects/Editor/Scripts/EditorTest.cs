@@ -5,8 +5,9 @@ namespace Playground.Editor {
 	public class EditorTest : EditorWindow {
 
 		private SerializedObject winObj;
-		public GameObject editDebug;
-		private SerializedProperty propEditDebug;
+		[SerializeField]
+		private GameObject selectedObj = null;
+		private SerializedProperty selectedObjProp;
 
 		[MenuItem("Window/EditorTest")]
 		public static void ShowWindow() {
@@ -15,19 +16,45 @@ namespace Playground.Editor {
 
 		public void OnEnable() {
 			// Value init
-			editDebug = null;
+			selectedObj = null;
 			// Properties init
 			winObj = new SerializedObject(this);
-			propEditDebug = winObj.FindProperty("editDebug");
+			ResetSelectedProperty();
+		}
+
+		private void ResetSelectedProperty() {
+			selectedObjProp = winObj.FindProperty("selectedObj");
 		}
 
 		public void OnGUI() {
-			EditorGUILayout.PropertyField(propEditDebug, new GUIContent("edit debug"));
-			if (GUILayout.Button("Test")) {
-				Undo.RecordObject(editDebug.transform, "1 up");
-				editDebug.transform.position += Vector3.up;
+			if (selectedObj == null) {
+				GUILayout.Label("Nothing Selected");
+				return;
+			}
+			GUILayout.Label("Selected: " + selectedObj.name);
+			if (GUILayout.Button("Reset Transform (Local)")) {
+				Undo.RecordObject(selectedObj.transform, "Reset transform (Local)");
+				selectedObj.transform.localPosition = Vector3.zero;
+				selectedObj.transform.localRotation = Quaternion.identity;
+				selectedObj.transform.localScale = Vector3.one;
+			}
+			if (GUILayout.Button("Reset Transform (World)")) {
+				Undo.RecordObject(selectedObj.transform, "Reset transform (World)");
+				selectedObj.transform.position = Vector3.zero;
+				selectedObj.transform.rotation = Quaternion.identity;
+				selectedObj.transform.localScale = Vector3.one;
 			}
 			winObj.ApplyModifiedProperties();
+		}
+
+		public void Update() {
+			
+		}
+
+		private void OnSelectionChange() {
+			selectedObj = Selection.activeGameObject;
+			ResetSelectedProperty();
+			Repaint();
 		}
 
 	}
