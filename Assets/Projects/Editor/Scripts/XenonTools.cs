@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace Playground {
+namespace Playground.Editor {
 	public class XenonTools : EditorWindow {
 
 		private const float WIN_MIN_WIDTH = 300f;
