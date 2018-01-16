@@ -5,7 +5,7 @@ namespace Playground {
 	public class ScreenshotTool : EditorWindow {
 
 		private const float WIN_MIN_WIDTH = 300f;
-		private const float WIN_MIN_HEIGHT = 65f;
+		private const float WIN_MIN_HEIGHT = 75f;
 
 		private const int SUPER_SIZE_MIN = 1;
 		private const int SUPER_SIZE_MAX = 8;
@@ -27,8 +27,16 @@ namespace Playground {
 			superSize = EditorGUILayout.IntSlider("Super Size", superSize, SUPER_SIZE_MIN, SUPER_SIZE_MAX);
 
 			if (GUILayout.Button("Save Screenshot")) {
-				ScreenCapture.CaptureScreenshot(filePath, superSize);
-				EditorUtility.RevealInFinder(filePath);
+				if (EditorApplication.isPlaying) {
+					ScreenCapture.CaptureScreenshot(filePath, superSize);
+					EditorUtility.RevealInFinder(filePath);
+				}
+			}
+
+			if (!EditorApplication.isPlaying) {
+				EditorGUILayout.LabelField("Not in play mode: cannot take screenshots!");
+			} else {
+				EditorGUILayout.LabelField("In play mode: can take screenshots.");
 			}
 		}
 
