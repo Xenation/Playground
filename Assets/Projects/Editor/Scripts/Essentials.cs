@@ -7,11 +7,13 @@ namespace Playground.Editor {
 	public class Essentials : EditorWindow {
 
 		private const float WIN_MIN_WIDTH = 300f;
-		private const float WIN_MIN_HEIGHT = 200f;
+		private const float WIN_MIN_HEIGHT = 275f;
 
 		private Color colorX;
 		private Color colorY;
 		private Color colorZ;
+
+		private SerializedObject serializedObject;
 
 		// General
 		private bool shortcutsEnabled = true;
@@ -25,6 +27,15 @@ namespace Playground.Editor {
 		private int selectedLayersNamesMask = 0;
 		private int customSurfaceMoveLayerMask = 0;
 		private bool surfaceMove = false;
+
+		// Camera Fit
+		private bool allowCameraFit = true;
+		private Camera cameraToFit;
+		private bool cameraFitUseCustomCamera = false;
+		[SerializeField]
+		private Camera customCameraToFit;
+		private SerializedProperty cameraToFitProp;
+		private bool applyCameraParameters;
 
 		private GameObject selected = null;
 
@@ -44,6 +55,10 @@ namespace Playground.Editor {
 			colorX = GetPrefColor("Scene/X Axis");
 			colorY = GetPrefColor("Scene/Y Axis");
 			colorZ = GetPrefColor("Scene/Z Axis");
+			serializedObject = new SerializedObject(this);
+			cameraToFit = Camera.main;
+			customCameraToFit = Camera.main;
+			cameraToFitProp = serializedObject.FindProperty("customCameraToFit");
 		}
 
 		private Color GetPrefColor(string key) {
@@ -91,6 +106,28 @@ namespace Playground.Editor {
 					customSurfaceMoveLayerMask = GetSelectedLayerMask();
 				}
 			}
+
+			EditorGUI.indentLevel = 0;
+			allowCameraFit = EditorGUILayout.ToggleLeft("Camera Fit", allowCameraFit, EditorStyles.boldLabel);
+			if (allowCameraFit) {
+				EditorGUI.indentLevel = 1;
+				cameraFitUseCustomCamera = EditorGUILayout.ToggleLeft("Use Custom Camera", cameraFitUseCustomCamera);
+				if (cameraFitUseCustomCamera) {
+					EditorGUI.indentLevel = 2;
+					EditorGUILayout.PropertyField(cameraToFitProp);
+				}
+				EditorGUI.indentLevel = 1;
+				applyCameraParameters = EditorGUILayout.ToggleLeft("Apply Camera Parameters", applyCameraParameters);
+				if (GUILayout.Button("Fit Camera")) {
+					if (cameraFitUseCustomCamera) {
+						PlaceCameraFromSceneView(SceneView.lastActiveSceneView, customCameraToFit, applyCameraParameters);
+					} else {
+						PlaceCameraFromSceneView(SceneView.lastActiveSceneView, cameraToFit, applyCameraParameters);
+					}
+				}
+			}
+
+			serializedObject.ApplyModifiedProperties();
 		}
 
 		private string[] GetAllLayerNames() {
@@ -120,11 +157,11 @@ namespace Playground.Editor {
 			UpdateHandles(scene);
 
 			Event e = Event.current;
-			shift = e.shift;
-			ctrl = e.control;
 			if (!shortcutsEnabled && (e.type == EventType.keyDown || e.type == EventType.KeyUp)) {
 				return;
 			}
+			shift = e.shift;
+			ctrl = e.control;
 			switch (e.type) {
 				case EventType.KeyDown: // DOWN
 					//Debug.Log(e.keyCode); // Pressed debug
@@ -215,6 +252,24 @@ namespace Playground.Editor {
 		private void DeselectAll() {
 			Selection.activeGameObject = null;
 			selected = null;
+		}
+
+		private void PlaceCameraFromSceneView(SceneView view, Camera cam, bool applyCamParams) {
+			UnityEngine.Object[] toUndo;
+			if (applyCamParams) {
+				toUndo = new UnityEngine.Object[2];
+				toUndo[0] = cam.transform;
+				toUndo[1] = cam;
+			} else {
+				toUndo = new UnityEngine.Object[1];
+				toUndo[0] = cam.transform;
+			}
+			Undo.RecordObjects(toUndo, "Camera Fit");
+			cam.transform.position = view.camera.transform.position;
+			cam.transform.rotation = view.camera.transform.rotation;
+			if (applyCamParams) {
+				cam.fieldOfView = view.camera.fieldOfView;
+			}
 		}
 
 	}

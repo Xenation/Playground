@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-[CreateAssetMenu]
+[CreateAssetMenu(order = 100)]
 public class EditorData : ScriptableObject {
 
 	public bool DisplayVertices;
