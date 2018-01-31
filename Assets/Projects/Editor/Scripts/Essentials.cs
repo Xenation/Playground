@@ -49,7 +49,7 @@ namespace Playground.Editor {
 			shift = false;
 		}
 
-		private void Awake() {
+		private void OnEnable() {
 			SceneView.onSceneGUIDelegate -= OnSceneGUI;
 			SceneView.onSceneGUIDelegate += OnSceneGUI;
 			colorX = GetPrefColor("Scene/X Axis");

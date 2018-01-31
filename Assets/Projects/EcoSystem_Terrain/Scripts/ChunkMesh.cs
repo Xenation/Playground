@@ -18,17 +18,27 @@ namespace EcoSystem {
 
 		private Mesh mesh;
 
+		[HideInInspector]
+		[SerializeField]
 		private int[] indices;
+		[HideInInspector]
+		[SerializeField]
 		private Vector3[] relativePosition;
+		[HideInInspector]
+		[SerializeField]
 		private Vector3[] vertices;
+		[HideInInspector]
+		[SerializeField]
 		private Color[] colors;
-
+		
+		[SerializeField]
 		private Vector2 size;
 		public Vector2 Size {
 			get {
 				return size;
 			}
 		}
+		[SerializeField]
 		private int quads = 1;
 
 		public ChunkMesh(Vector2 size, int quads) {

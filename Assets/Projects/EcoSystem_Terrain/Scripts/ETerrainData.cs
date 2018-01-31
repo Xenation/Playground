@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace EcoSystem {
 	public class ETerrainData : ScriptableObject {
-
+		
 		public ChunkDictionary chunks = new ChunkDictionary();
 
 		[MenuItem("Assets/Create/EcoSystem TerrainData")]
@@ -13,6 +13,11 @@ namespace EcoSystem {
 			AssetDatabase.SaveAssets();
 			EditorUtility.FocusProjectWindow();
 			Selection.activeObject = data;
+		}
+
+		public void OnDisable() {
+			EditorUtility.SetDirty(this);
+			AssetDatabase.SaveAssets();
 		}
 
 	}
