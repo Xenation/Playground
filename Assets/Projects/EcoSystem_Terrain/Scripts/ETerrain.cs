@@ -6,11 +6,12 @@ namespace EcoSystem {
 	[AddComponentMenu("EcoSystem/Terrain")]
 	public class ETerrain : MonoBehaviour {
 
+		#region Attributes/Props
 		public Material terrainMaterial;
 		public int chunksCountX = 8;
 		public int chunksCountZ = 8;
 		public Vector2 terrainSize = new Vector2(2048f, 2048f);
-		private Vector2 chunkSize {
+		public Vector2 chunkSize {
 			get {
 				return new Vector2(terrainSize.x / chunksCountX, terrainSize.y / chunksCountZ);
 			}
@@ -26,6 +27,24 @@ namespace EcoSystem {
 		}
 
 		public ETerrainData data;
+
+		#region Editor
+		// TODO Unsafe for build (deserialization)
+#if UNITY_EDITOR
+		// TOOLS
+		[SerializeField]
+		private float brushSize = 5f;
+		[Range(0f, 1f)]
+		[SerializeField]
+		private float brushHardCenter = .5f;
+		[Range(0f, 1f)]
+		[SerializeField]
+		private float brushDensity = 1f;
+
+		public VirtualMesh virtualMesh;
+#endif
+		#endregion
+		#endregion
 
 		public void LoadData() {
 			if (data == null) return;
@@ -44,6 +63,9 @@ namespace EcoSystem {
 					chunks.Add(chkData.pos, EChunk.CreateChunk(transform, chkData));
 				}
 			}
+#if UNITY_EDITOR
+			virtualMesh = new VirtualMesh(this);
+#endif
 		}
 
 		public void Generate() {
@@ -53,6 +75,9 @@ namespace EcoSystem {
 					AddChunkAt(new Vector2i(x, z));
 				}
 			}
+#if UNITY_EDITOR
+			virtualMesh = new VirtualMesh(this);
+#endif
 		}
 
 		private void AddChunkAt(Vector2i pos) {
@@ -160,6 +185,32 @@ namespace EcoSystem {
 				shifted++;
 			}
 			return 1 << shifted;
+		}
+
+		public bool Raycast(Ray ray, out RaycastHit hit, float distance) {
+			hit = new RaycastHit();
+			foreach (EChunk chk in chunks.Values) {
+				if (chk.Collider.Raycast(ray, out hit, distance)) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		public Vector2i[] ChunkPositionsTouching(Rect rect) {
+			Vector2 chkSize = chunkSize;
+			int bottom = (int) (rect.yMin / chkSize.y);
+			int top = (int) (rect.yMax / chkSize.y);
+			int left = (int) (rect.xMin / chkSize.x);
+			int right = (int) (rect.xMax / chkSize.x);
+			Vector2i[] touching = new Vector2i[(top - bottom + 1) * (right - left + 1)];
+			int index = 0;
+			for (int y = bottom; y <= top; y++) {
+				for (int x = left; x <= right; x++) {
+					touching[index++] = new Vector2i(x, y);
+				}
+			}
+			return touching;
 		}
 
 	}

@@ -2,7 +2,7 @@
 
 namespace EcoSystem {
 	[HideInInspector]
-	[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
+	[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
 	public class EChunk : MonoBehaviour {
 
 		private MeshFilter filter;
@@ -15,6 +15,13 @@ namespace EcoSystem {
 		public Vector2i Pos {
 			get {
 				return data.pos;
+			}
+		}
+
+		private MeshCollider meshCollider;
+		public Collider Collider {
+			get {
+				return meshCollider;
 			}
 		}
 
@@ -43,6 +50,8 @@ namespace EcoSystem {
 			DestroyImmediate(filter.sharedMesh);
 			data.mesh.RecreateMesh();
 			filter.sharedMesh = data.mesh;
+			meshCollider = GetComponent<MeshCollider>();
+			meshCollider.sharedMesh = data.mesh;
 		}
 
 		private void Init(ETerrainData terrainData, Vector2i pos, Vector2 chkSize, int quads) {
@@ -56,6 +65,8 @@ namespace EcoSystem {
 			data.mesh = new ChunkMesh(chkSize, quads);
 			filter.sharedMesh = data.mesh;
 			data.mesh.GeneratePlane();
+			meshCollider = GetComponent<MeshCollider>();
+			meshCollider.sharedMesh = data.mesh;
 		}
 
 		public void UnbindData(ETerrainData terrainData) {

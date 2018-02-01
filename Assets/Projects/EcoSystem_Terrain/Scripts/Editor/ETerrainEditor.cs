@@ -10,6 +10,7 @@ namespace EcoSystem {
 
 		private ETerrain terrain;
 
+		// TERRAIN PARAMS
 		// General
 		private SerializedProperty terrainDataProp;
 		private SerializedProperty terrainMaterialProp;
@@ -19,24 +20,42 @@ namespace EcoSystem {
 		private SerializedProperty chunksCountZProp;
 		private SerializedProperty chunkQuadsProp;
 
+		// TOOLS
+		private int toolHash;
+		private int controlID;
+		private Vector2 mousePos = Vector2.zero;
+		private Vector3 brushCenter;
+		private SerializedProperty brushSizeProp;
+		private SerializedProperty brushHardCenterProp;
+		private SerializedProperty brushDensityProp;
+		private bool isPainting = false;
+		private bool shift = false;
+
 		public void OnEnable() {
 			terrain = (ETerrain) serializedObject.targetObject;
 			terrain.LoadData(); // TODO Load at scene load instead of selection of terrain
 			InitProperties();
+			toolHash = GetHashCode();
 		}
 
 		private void InitProperties() {
+			// Terrain Params
 			terrainDataProp = serializedObject.FindProperty("data");
 			terrainMaterialProp = serializedObject.FindProperty("terrainMaterial");
 			terrainSizeProp = serializedObject.FindProperty("terrainSize");
 			chunksCountXProp = serializedObject.FindProperty("chunksCountX");
 			chunksCountZProp = serializedObject.FindProperty("chunksCountZ");
 			chunkQuadsProp = serializedObject.FindProperty("chunkQuads");
+			// Tools
+			brushSizeProp = serializedObject.FindProperty("brushSize");
+			brushHardCenterProp = serializedObject.FindProperty("brushHardCenter");
+			brushDensityProp = serializedObject.FindProperty("brushDensity");
 		}
 
 		public override void OnInspectorGUI() {
 			serializedObject.Update();
-
+			
+			// TERRAIN PARAMS
 			EditorGUILayout.LabelField("General", EditorStyles.boldLabel);
 			EditorGUI.BeginChangeCheck();
 			EditorGUILayout.PropertyField(terrainDataProp);
@@ -78,13 +97,124 @@ namespace EcoSystem {
 			}
 
 			EditorGUILayout.LabelField("Chunks Count: " + terrain.ActualChunkCount);
+			
+
+			// TOOLS
+			EditorGUILayout.LabelField("TOOLS", EditorStyles.boldLabel);
+			EditorGUILayout.PropertyField(brushSizeProp);
+			EditorGUILayout.PropertyField(brushHardCenterProp);
+			EditorGUILayout.PropertyField(brushDensityProp);
 
 			serializedObject.ApplyModifiedProperties();
 		}
 
-		private void OnUndoRedo() {
+		private void OnSceneGUI() {
+			Event e = Event.current;
+			controlID = GUIUtility.GetControlID(toolHash, FocusType.Passive);
 
+			shift = e.shift;
+
+			switch (e.type) {
+				case EventType.Repaint:
+					Update();
+					RepaintScene();
+					break;
+				case EventType.MouseDrag:
+				case EventType.MouseMove:
+					mousePos = new Vector2(e.mousePosition.x, e.mousePosition.y);
+					break;
+				case EventType.KeyDown:
+					SceneKeydown(e.keyCode);
+					break;
+				case EventType.MouseDown:
+					SceneMouseDown(e);
+					break;
+				case EventType.MouseUp:
+					SceneMouseUp(e);
+					break;
+				case EventType.Layout:
+					HandleUtility.AddDefaultControl(controlID);
+					break;
+			}
+		}
+
+		//private System.Diagnostics.Stopwatch swRaiseLower = new System.Diagnostics.Stopwatch();
+		//private System.Diagnostics.Stopwatch swApply = new System.Diagnostics.Stopwatch();
+		private void Update() {
+			if (isPainting) {
+				//swRaiseLower.Start();
+				if (shift) {
+					LowerBrush(terrain.virtualMesh.GetVerticesInRange2D(new Vector2(brushCenter.x, brushCenter.z), brushSizeProp.floatValue));
+				} else {
+					RaiseBrush(terrain.virtualMesh.GetVerticesInRange2D(new Vector2(brushCenter.x, brushCenter.z), brushSizeProp.floatValue));
+				}
+				//swApply.Start();
+				terrain.virtualMesh.ApplyModifications();
+				//swApply.Stop();
+				//Debug.Log("Raise/Lower: " + swRaiseLower.ElapsedMilliseconds + "ms");
+				//Debug.Log("    apply: " + swApply.ElapsedMilliseconds + "ms");
+				//swRaiseLower.Reset();
+				//swApply.Reset();
+			}
 		}
 		
+		private void RepaintScene() {
+			SceneView view = SceneView.currentDrawingSceneView;
+			Ray ray = HandleUtility.GUIPointToWorldRay(mousePos);
+			RaycastHit hit;
+			if (terrain.Raycast(ray, out hit, 1000f)) {
+				brushCenter = hit.point;
+				Handles.color = Color.red;
+				Handles.DrawWireDisc(brushCenter, hit.normal, brushSizeProp.floatValue);
+				Handles.DrawWireDisc(brushCenter, hit.normal, brushSizeProp.floatValue * brushHardCenterProp.floatValue);
+			}
+		}
+		
+		private void RaiseBrush(Dictionary<VirtualVertex, float> vertices) {
+			if (brushHardCenterProp.floatValue == 1f) {
+				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
+					pair.Key.vertex += Vector3.up;
+				}
+			} else {
+				float brushSizeSqr = Mathf.Pow(brushSizeProp.floatValue, 2f);
+				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
+					pair.Key.vertex += Vector3.up * Mathf.Clamp01(1 - (pair.Value - brushSizeSqr * brushHardCenterProp.floatValue) / (brushSizeSqr - brushSizeSqr * brushHardCenterProp.floatValue));
+				}
+			}
+		}
+
+		private void LowerBrush(Dictionary<VirtualVertex, float> vertices) {
+			if (brushHardCenterProp.floatValue == 1f) {
+				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
+					pair.Key.vertex -= Vector3.up;
+				}
+			} else {
+				float brushSizeSqr = Mathf.Pow(brushSizeProp.floatValue, 2f);
+				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
+					pair.Key.vertex -= Vector3.up * Mathf.Clamp01(1 - (pair.Value - brushSizeSqr * brushHardCenterProp.floatValue) / (brushSizeSqr - brushSizeSqr * brushHardCenterProp.floatValue));
+				}
+			}
+		}
+
+		private void SceneKeydown(KeyCode key) {
+			if (key == KeyCode.Keypad0) {
+				
+			}
+		}
+
+		private void SceneMouseDown(Event e) {
+			if (e.button == 0) {
+				isPainting = true;
+				e.Use();
+			}
+		}
+
+		private void SceneMouseUp(Event e) {
+			if (e.button == 0) {
+				isPainting = false;
+				e.Use();
+			}
+		}
+
 	}
 }

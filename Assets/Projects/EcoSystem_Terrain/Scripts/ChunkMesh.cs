@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace EcoSystem {
@@ -54,11 +55,12 @@ namespace EcoSystem {
 			indices = mesh.GetIndices(0);
 		}
 
-		private void ApplyModifications() {
+		public void ApplyModifications() {
 			mesh.Clear();
 			mesh.vertices = vertices;
 			mesh.colors = colors;
 			mesh.SetIndices(indices, MeshTopology.Triangles, 0);
+			mesh.RecalculateNormals();
 		}
 
 		public void RecreateMesh() {
@@ -68,6 +70,7 @@ namespace EcoSystem {
 
 		public void GeneratePlane() {
 			mesh.GeneratePlane(size, quads, quads);
+			mesh.RecalculateNormals();
 			Resync();
 			ResetRelativePositions();
 		}
@@ -128,9 +131,15 @@ namespace EcoSystem {
 			int br = bl + 1;
 			int tl = quads * (quadPos.y + 1) + (quadPos.y + 1) + quadPos.x;
 			int tr = tl + 1;
-			//Debug.Log("quadPos=" + quadPos);
-			//Debug.Log("tl=" + tl + "  tr=" + tr + "  bl=" + bl + "  br=" + br);
 			return new Quad(vertices[tl], vertices[tr], vertices[bl], vertices[br]);
+		}
+
+		public List<VirtualVertex> GetVirtualVertices() {
+			List<VirtualVertex> virtVertices = new List<VirtualVertex>();
+			for (int i = 0; i < vertices.Length; i++) {
+				virtVertices.Add(new VirtualVertex(i, ref vertices));
+			}
+			return virtVertices;
 		}
 
 		public static implicit operator Mesh(ChunkMesh chkMesh) {
