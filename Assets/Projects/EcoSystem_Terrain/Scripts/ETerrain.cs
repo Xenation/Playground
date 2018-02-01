@@ -28,6 +28,8 @@ namespace EcoSystem {
 
 		public ETerrainData data;
 
+		public VirtualMesh virtualMesh;
+
 		#region Editor
 		// TODO Unsafe for build (deserialization)
 #if UNITY_EDITOR
@@ -40,8 +42,6 @@ namespace EcoSystem {
 		[Range(0f, 1f)]
 		[SerializeField]
 		private float brushDensity = 1f;
-
-		public VirtualMesh virtualMesh;
 #endif
 		#endregion
 		#endregion
@@ -63,9 +63,7 @@ namespace EcoSystem {
 					chunks.Add(chkData.pos, EChunk.CreateChunk(transform, chkData));
 				}
 			}
-#if UNITY_EDITOR
 			virtualMesh = new VirtualMesh(this);
-#endif
 		}
 
 		public void Generate() {
@@ -75,9 +73,7 @@ namespace EcoSystem {
 					AddChunkAt(new Vector2i(x, z));
 				}
 			}
-#if UNITY_EDITOR
 			virtualMesh = new VirtualMesh(this);
-#endif
 		}
 
 		private void AddChunkAt(Vector2i pos) {
@@ -120,11 +116,13 @@ namespace EcoSystem {
 		public void Resize(Vector2 nTerrainSize, int nCountX, int nCountZ) {
 			ResizeChunkGrid(nCountX, nCountZ);
 			ModifyChunkSize(new Vector2(nTerrainSize.x / nCountX, nTerrainSize.y / nCountZ));
+			virtualMesh.Refetch();
 		}
 
 		public void ModifyChunkSize(Vector2 nSize) {
 			foreach (EChunk chk in chunks.Values) {
 				chk.Resize(nSize);
+				chk.RebuildCollider();
 			}
 		}
 
@@ -169,6 +167,13 @@ namespace EcoSystem {
 			}
 			foreach (EChunk chk in chunks.Values) {
 				chk.SetResolution(quads);
+			}
+			virtualMesh.Refetch();
+		}
+
+		public void RebuildCollisions() {
+			foreach (EChunk chk in chunks.Values) {
+				chk.RebuildCollider();
 			}
 		}
 

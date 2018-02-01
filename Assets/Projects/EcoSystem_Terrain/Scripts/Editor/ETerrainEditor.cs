@@ -29,6 +29,8 @@ namespace EcoSystem {
 		private SerializedProperty brushHardCenterProp;
 		private SerializedProperty brushDensityProp;
 		private bool isPainting = false;
+		private bool isMouseOverTerrain = false;
+		private bool isClicking = false;
 		private bool shift = false;
 
 		public void OnEnable() {
@@ -165,8 +167,18 @@ namespace EcoSystem {
 			if (terrain.Raycast(ray, out hit, 1000f)) {
 				brushCenter = hit.point;
 				Handles.color = Color.red;
-				Handles.DrawWireDisc(brushCenter, hit.normal, brushSizeProp.floatValue);
-				Handles.DrawWireDisc(brushCenter, hit.normal, brushSizeProp.floatValue * brushHardCenterProp.floatValue);
+				Handles.DrawWireDisc(brushCenter, Vector3.up, brushSizeProp.floatValue);
+				Handles.DrawWireDisc(brushCenter, Vector3.up, brushSizeProp.floatValue * brushHardCenterProp.floatValue);
+				isMouseOverTerrain = true;
+				if (isClicking) {
+					isPainting = true;
+				}
+			} else {
+				isMouseOverTerrain = false;
+				if (isPainting) {
+					isPainting = false;
+					terrain.RebuildCollisions();
+				}
 			}
 		}
 		
@@ -204,15 +216,22 @@ namespace EcoSystem {
 
 		private void SceneMouseDown(Event e) {
 			if (e.button == 0) {
-				isPainting = true;
-				e.Use();
+				isClicking = true;
+				if (isMouseOverTerrain) {
+					isPainting = true;
+					e.Use();
+				}
 			}
 		}
 
 		private void SceneMouseUp(Event e) {
 			if (e.button == 0) {
-				isPainting = false;
-				e.Use();
+				isClicking = false;
+				if (isPainting) {
+					isPainting = false;
+					e.Use();
+					terrain.RebuildCollisions();
+				}
 			}
 		}
 

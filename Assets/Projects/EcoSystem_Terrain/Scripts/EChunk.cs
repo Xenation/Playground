@@ -50,8 +50,7 @@ namespace EcoSystem {
 			DestroyImmediate(filter.sharedMesh);
 			data.mesh.RecreateMesh();
 			filter.sharedMesh = data.mesh;
-			meshCollider = GetComponent<MeshCollider>();
-			meshCollider.sharedMesh = data.mesh;
+			RebuildCollider();
 		}
 
 		private void Init(ETerrainData terrainData, Vector2i pos, Vector2 chkSize, int quads) {
@@ -65,6 +64,10 @@ namespace EcoSystem {
 			data.mesh = new ChunkMesh(chkSize, quads);
 			filter.sharedMesh = data.mesh;
 			data.mesh.GeneratePlane();
+			RebuildCollider();
+		}
+
+		public void RebuildCollider() {
 			meshCollider = GetComponent<MeshCollider>();
 			meshCollider.sharedMesh = data.mesh;
 		}
