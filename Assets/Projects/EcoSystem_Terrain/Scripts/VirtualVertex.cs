@@ -4,9 +4,8 @@ namespace EcoSystem {
 	public class VirtualVertex {
 		
 		public int index { get; private set; }
-		//public Vector3 vertex;
-		private Vector3[] vertices;
-		public Vector3 vertex {
+		protected Vector3[] vertices;
+		public virtual Vector3 vertex {
 			get {
 				return vertices[index];
 			}
