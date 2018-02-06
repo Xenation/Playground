@@ -37,7 +37,7 @@ namespace EcoSystem {
 			fourthData = fourthD;
 		}
 
-		public new void AverageNormals() {
+		public override void AverageNormals() {
 			normal = Vector3.Slerp(Vector3.Slerp(data.normals[index], secondData.normals[secondIndex], .5f), Vector3.Slerp(thirdData.normals[thirdIndex], fourthData.normals[fourthIndex], .5f), .5f);
 		}
 

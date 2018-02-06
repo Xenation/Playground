@@ -29,6 +29,7 @@ namespace EcoSystem {
 		}
 
 		public VirtualVertex(Vector3 offset, int index, MeshData d) {
+			this.offset = offset;
 			this.index = index;
 			data = d;
 		}

@@ -295,7 +295,7 @@ MonoBehaviour:
   terrainSize: {x: 512, y: 512}
   chunkQuads: 16
   data: {fileID: 11400000, guid: 0f3d0a3ec0b41704db6ec1a903ce43e1, type: 2}
-  brushSize: 25
+  brushSize: 50
   brushHardCenter: 0
   brushDensity: 1
 --- !u!4 &1896944939

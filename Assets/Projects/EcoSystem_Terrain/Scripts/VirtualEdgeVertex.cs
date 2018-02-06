@@ -29,7 +29,7 @@ namespace EcoSystem {
 			secondData = secD;
 		}
 
-		public new void AverageNormals() {
+		public override void AverageNormals() {
 			normal = Vector3.Slerp(data.normals[index], secondData.normals[secondIndex], .5f);
 		}
 

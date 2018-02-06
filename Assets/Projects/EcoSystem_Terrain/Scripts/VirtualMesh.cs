@@ -12,9 +12,6 @@ namespace EcoSystem {
 
 		private ETerrain terrain;
 
-		//private System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-		//private System.Diagnostics.Stopwatch swDist = new System.Diagnostics.Stopwatch();
-
 		public VirtualMesh(ETerrain terr) {
 			terrain = terr;
 			Refetch(terr.data.chunks);
@@ -23,29 +20,23 @@ namespace EcoSystem {
 		private Dictionary<VirtualVertex, float> vertsByDistance = new Dictionary<VirtualVertex, float>();
 		public Dictionary<VirtualVertex, float> GetVerticesInRange2D(Vector2 center, float range) {
 			// TODO Optimize
-			//sw.Start();
 			vertsByDistance.Clear();
 			float rangeSqr = Mathf.Pow(range, 2f);
+			float existingDistance = 0f;
 			Vector2i[] touching = terrain.ChunkPositionsTouching(new Rect(new Vector2(center.x - range, center.y - range), Vector2.one * range * 2f));
 			for (int i = 0; i < touching.Length; i++) {
 				ChunkData chkData;
 				if (data.TryGetValue(touching[i], out chkData)) {
 					foreach (VirtualVertex vert in virtualVertices[chkData.mesh]) {
-						//swDist.Start();
 						float distanceSqr = (new Vector2(vert.vertex.x, vert.vertex.z) - center).sqrMagnitude; // TODO unsafe quick local to world transform
-						//swDist.Stop();
 						if (distanceSqr < rangeSqr) {
-							if (!vertsByDistance.TryGetValue(vert, out distanceSqr)) {
+							if (!vertsByDistance.TryGetValue(vert, out existingDistance)) {
 								vertsByDistance.Add(vert, distanceSqr);
 							}
 						}
 					}
 				}
 			}
-			//Debug.Log("getVerticesInRange2D: " + sw.ElapsedMilliseconds + "ms");
-			//Debug.Log("    distanceSqr: " + swDist.ElapsedMilliseconds + "ms");
-			//sw.Reset();
-			//swDist.Reset();
 			return vertsByDistance;
 		}
 
@@ -54,9 +45,6 @@ namespace EcoSystem {
 				chkData.mesh.ApplyModifications();
 			}
 			FixEdgeSeams();
-			foreach (ChunkData chkData in data.Values) {
-				chkData.mesh.ApplyNormalsModifications();
-			}
 		}
 
 		private void FixEdgeSeams() {
@@ -64,6 +52,9 @@ namespace EcoSystem {
 				foreach (VirtualVertex vert in verts) {
 					vert.AverageNormals();
 				}
+			}
+			foreach (ChunkData chkData in data.Values) {
+				chkData.mesh.ApplyNormalsModifications();
 			}
 		}
 
@@ -81,6 +72,7 @@ namespace EcoSystem {
 				data.Add(chk.pos, chk);
 				virtualVertices.Add(chk.mesh, chk.mesh.GetVirtualVertices(new Vector3(chk.pos.x * terrain.chunkSize.x, 0f, chk.pos.y * terrain.chunkSize.y)));
 			}
+			FixEdgeSeams();
 		}
 
 	}
