@@ -17,7 +17,9 @@ namespace EcoSystem {
 			}
 		}
 		[Range(1, 256)]
-		public int chunkQuads = 32;
+		public int desiredQuads = 32;
+		[System.NonSerialized]
+		public int actualQuads = 32;
 
 		private Dictionary<Vector2i, EChunk> chunks = new Dictionary<Vector2i, EChunk>();
 		public int ActualChunkCount {
@@ -79,7 +81,7 @@ namespace EcoSystem {
 		}
 
 		private void AddChunkAt(Vector2i pos) {
-			EChunk chk = EChunk.CreateChunk(transform, data, pos, chunkSize, chunkQuads);
+			EChunk chk = EChunk.CreateChunk(transform, data, pos, chunkSize, actualQuads);
 			chunks.Add(pos, chk);
 			chk.SetMaterial(terrainMaterial);
 		}
@@ -167,6 +169,7 @@ namespace EcoSystem {
 			if (!IsPowerOfTwo(quads)) {
 				quads = NextPowerOfTwo(quads);
 			}
+			actualQuads = quads;
 			foreach (EChunk chk in chunks.Values) {
 				chk.SetResolution(quads);
 				chk.RebuildCollider();

@@ -290,15 +290,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   terrainMaterial: {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
-  chunksCountX: 8
-  chunksCountZ: 8
+  chunksCountX: 4
+  chunksCountZ: 4
   terrainSize: {x: 512, y: 512}
-  chunkQuads: 16
+  desiredQuads: 16
   data: {fileID: 11400000, guid: 0f3d0a3ec0b41704db6ec1a903ce43e1, type: 2}
   brushSize: 50
-  brushHardCenter: 0.4
+  brushHardCenter: 1
   brushDensity: 1
-  flattenHeight: 20
+  flattenHeight: 0
 --- !u!4 &1896944939
 Transform:
   m_ObjectHideFlags: 0

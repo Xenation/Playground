@@ -62,7 +62,7 @@ namespace EcoSystem {
 			terrainSizeProp = serializedObject.FindProperty("terrainSize");
 			chunksCountXProp = serializedObject.FindProperty("chunksCountX");
 			chunksCountZProp = serializedObject.FindProperty("chunksCountZ");
-			chunkQuadsProp = serializedObject.FindProperty("chunkQuads");
+			chunkQuadsProp = serializedObject.FindProperty("desiredQuads");
 			// Tools
 			brushSizeProp = serializedObject.FindProperty("brushSize");
 			brushHardCenterProp = serializedObject.FindProperty("brushHardCenter");

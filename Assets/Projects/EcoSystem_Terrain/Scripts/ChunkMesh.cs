@@ -176,191 +176,27 @@ namespace EcoSystem {
 			int tr = tl + 1;
 			return new Quad(data.vertices[tl], data.vertices[tr], data.vertices[bl], data.vertices[br]);
 		}
-
-		public List<VirtualVertex> GetVirtualVertices(Vector3 chkWorldPos) { // TODO reduce line count :p
-			List<VirtualVertex> virtVertices = new List<VirtualVertex>();
-			
-			if (quads > 1) {
-				// Center
-				for (int y = 1; y < quads; y++) {
-					for (int x = 1; x < quads; x++) {
-						virtVertices.Add(new VirtualVertex(chkWorldPos, GetVertexIndex(x, y), data));
-					}
-				}
-
-				// Front Edge
-				if (frontVertices.Count == 0) {
-					if (front == null) {
-						for (int x = 1; x < quads; x++) {
-							VirtualVertex vert = new VirtualVertex(chkWorldPos, GetVertexIndex(x, quads), data);
-							frontVertices.Add(vert);
-						}
+		
+		public int[] GetVirtualVertices(ref VirtualVertex[] virtualVertices, int virtVertCountX, Vector2i chkPos, Vector2 chkSize) {
+			int vertCount = (quads + 1) * (quads + 1);
+			int[] virtualIndices = new int[vertCount];
+			int virtIndicesIndex = 0;
+			for (int y = 0; y < quads + 1; y++) {
+				for (int x = 0; x < quads + 1; x++) {
+					//int virtX = chkPos.x * quads + x;
+					//int virtY = chkPos.y * quads + y;
+					//int virtIndex = virtY * virtVertCountX + virtX;
+					int virtIndex = (chkPos.y * quads + y) * virtVertCountX + (chkPos.x * quads + x);
+					int localIndex = y * (quads + 1) + x;
+					if (virtualVertices[virtIndex] != null) {
+						virtualVertices[virtIndex].AddMesh(localIndex, data);
 					} else {
-						for (int x = 1; x < quads; x++) {
-							VirtualVertex vert = new VirtualEdgeVertex(chkWorldPos, GetVertexIndex(x, quads), data, GetVertexIndex(x, 0), front.data);
-							frontVertices.Add(vert);
-							front.backVertices.Add(vert);
-						}
+						virtualVertices[virtIndex] = new VirtualVertex(new Vector3(chkPos.x * chkSize.x, 0f, chkPos.y * chkSize.y), localIndex, data);
 					}
-				}
-				virtVertices.AddRange(frontVertices);
-
-				// Right Edge
-				if (rightVertices.Count == 0) {
-					if (right == null) {
-						for (int y = 1; y < quads; y++) {
-							VirtualVertex vert = new VirtualVertex(chkWorldPos, GetVertexIndex(quads, y), data);
-							rightVertices.Add(vert);
-						}
-					} else {
-						for (int y = 1; y < quads; y++) {
-							VirtualVertex vert = new VirtualEdgeVertex(chkWorldPos, GetVertexIndex(quads, y), data, GetVertexIndex(0, y), right.data);
-							rightVertices.Add(vert);
-							right.leftVertices.Add(vert);
-						}
-					}
-				}
-				virtVertices.AddRange(rightVertices);
-
-				// Back Edge
-				if (backVertices.Count == 0) {
-					if (back == null) {
-						for (int x = 1; x < quads; x++) {
-							VirtualVertex vert = new VirtualVertex(chkWorldPos, GetVertexIndex(x, 0), data);
-							backVertices.Add(vert);
-						}
-					} else {
-						for (int x = 1; x < quads; x++) {
-							VirtualVertex vert = new VirtualEdgeVertex(chkWorldPos, GetVertexIndex(x, 0), data, GetVertexIndex(x, quads), back.data);
-							backVertices.Add(vert);
-							back.frontVertices.Add(vert);
-						}
-					}
-				}
-				virtVertices.AddRange(backVertices);
-
-				// Left Edge
-				if (leftVertices.Count == 0) {
-					if (left == null) {
-						for (int y = 1; y < quads; y++) {
-							VirtualVertex vert = new VirtualVertex(chkWorldPos, GetVertexIndex(0, y), data);
-							leftVertices.Add(vert);
-						}
-					} else {
-						for (int y = 1; y < quads; y++) {
-							VirtualVertex vert = new VirtualEdgeVertex(chkWorldPos, GetVertexIndex(0, y), data, GetVertexIndex(quads, y), left.data);
-							leftVertices.Add(vert);
-							left.rightVertices.Add(vert);
-						}
-					}
-				}
-				virtVertices.AddRange(leftVertices);
-			}
-			
-			// TL Corner
-			if (flVertex == null) {
-				if (front == null && left == null) {
-					VirtualVertex vert = new VirtualVertex(chkWorldPos, GetVertexIndex(0, quads), data);
-					flVertex = vert;
-				} else if (front == null || left == null) {
-					if (front == null) {
-						VirtualVertex vert = new VirtualEdgeVertex(chkWorldPos, GetVertexIndex(0, quads), data, GetVertexIndex(quads, quads), left.data);
-						flVertex = vert;
-						left.frVertex = vert;
-					} else {
-						VirtualVertex vert = new VirtualEdgeVertex(chkWorldPos, GetVertexIndex(0, quads), data, GetVertexIndex(0, 0), front.data);
-						flVertex = vert;
-						front.blVertex = vert;
-					}
-				} else {
-					VirtualVertex vert = new VirtualCornerVertex(chkWorldPos, GetVertexIndex(0, quads), data, GetVertexIndex(quads, quads), left.data, GetVertexIndex(quads, 0), left.front.data, GetVertexIndex(0, 0), front.data);
-					flVertex = vert;
-					left.frVertex = vert;
-					left.front.brVertex = vert;
-					front.blVertex = vert;
+					virtualIndices[virtIndicesIndex++] = virtIndex;
 				}
 			}
-			virtVertices.Add(flVertex);
-
-			// TR Corner
-			if (frVertex == null) {
-				if (front == null && right == null) {
-					VirtualVertex vert = new VirtualVertex(chkWorldPos, GetVertexIndex(quads, quads), data);
-					frVertex = vert;
-				} else if (front == null || right == null) {
-					if (front == null) {
-						VirtualVertex vert = new VirtualEdgeVertex(chkWorldPos, GetVertexIndex(quads, quads), data, GetVertexIndex(0, quads), right.data);
-						frVertex = vert;
-						right.flVertex = vert;
-					} else {
-						VirtualVertex vert = new VirtualEdgeVertex(chkWorldPos, GetVertexIndex(quads, quads), data, GetVertexIndex(quads, 0), front.data);
-						frVertex = vert;
-						front.brVertex = vert;
-					}
-				} else {
-					VirtualVertex vert = new VirtualCornerVertex(chkWorldPos, GetVertexIndex(quads, quads), data, GetVertexIndex(quads, 0), front.data, GetVertexIndex(0, 0), front.right.data, GetVertexIndex(0, quads), right.data);
-					frVertex = vert;
-					front.brVertex = vert;
-					front.right.blVertex = vert;
-					right.flVertex = vert;
-				}
-			}
-			virtVertices.Add(frVertex);
-
-			// BR Corner
-			if (brVertex == null) {
-				if (back == null && right == null) {
-					VirtualVertex vert = new VirtualVertex(chkWorldPos, GetVertexIndex(quads, 0), data);
-					brVertex = vert;
-				} else if (back == null || right == null) {
-					if (back == null) {
-						VirtualVertex vert = new VirtualEdgeVertex(chkWorldPos, GetVertexIndex(quads, 0), data, GetVertexIndex(0, 0), right.data);
-						brVertex = vert;
-						right.blVertex = vert;
-					} else {
-						VirtualVertex vert = new VirtualEdgeVertex(chkWorldPos, GetVertexIndex(quads, 0), data, GetVertexIndex(quads, quads), back.data);
-						brVertex = vert;
-						back.frVertex = vert;
-					}
-				} else {
-					VirtualVertex vert = new VirtualCornerVertex(chkWorldPos, GetVertexIndex(quads, 0), data, GetVertexIndex(0, 0), right.data, GetVertexIndex(0, quads), right.back.data, GetVertexIndex(quads, quads), back.data);
-					brVertex = vert;
-					right.blVertex = vert;
-					right.back.flVertex = vert;
-					back.frVertex = vert;
-				}
-			}
-			virtVertices.Add(brVertex);
-
-			// BL Corner
-			if (blVertex == null) {
-				if (back == null && left == null) {
-					VirtualVertex vert = new VirtualVertex(chkWorldPos, GetVertexIndex(0, 0), data);
-					blVertex = vert;
-				} else if (back == null || left == null) {
-					if (back == null) {
-						VirtualVertex vert = new VirtualEdgeVertex(chkWorldPos, GetVertexIndex(0, 0), data, GetVertexIndex(quads, 0), left.data);
-						blVertex = vert;
-						left.brVertex = vert;
-					} else {
-						VirtualVertex vert = new VirtualEdgeVertex(chkWorldPos, GetVertexIndex(0, 0), data, GetVertexIndex(0, quads), back.data);
-						blVertex = vert;
-						back.flVertex = vert;
-					}
-				} else {
-					VirtualVertex vert = new VirtualCornerVertex(chkWorldPos, GetVertexIndex(0, 0), data, GetVertexIndex(0, quads), back.data, GetVertexIndex(quads, quads), back.left.data, GetVertexIndex(quads, 0), left.data);
-					blVertex = vert;
-					back.flVertex = vert;
-					back.left.frVertex = vert;
-					left.brVertex = vert;
-				}
-			}
-			virtVertices.Add(blVertex);
-
-			//for (int i = 0; i < vertices.Length; i++) {
-			//	virtVertices.Add(new VirtualVertex(i, ref vertices));
-			//}
-			return virtVertices;
+			return virtualIndices;
 		}
 
 		public void ResetVirtualVertices() {

@@ -2,39 +2,72 @@
 
 namespace EcoSystem {
 	public class VirtualVertex {
-		
-		public int index { get; private set; }
-		protected MeshData data;
+
 		private Vector3 offset;
+
+		private int[] indices;
+		private MeshData[] meshesData;
+
 		public Vector3 vertex {
 			get {
-				return offset + data.vertices[index];
+				return offset + meshesData[0].vertices[indices[0]];
 			}
 		}
-		public virtual float height {
+		public float height {
 			get {
-				return data.vertices[index].y;
+				return meshesData[0].vertices[indices[0]].y;
 			}
 			set {
-				data.vertices[index].y = value;
+				for (int i = 0; i < meshesData.Length; i++) {
+					meshesData[i].vertices[indices[i]].y = value;
+				}
 			}
 		}
-		public virtual Vector3 normal {
+		public Vector3 normal {
 			get {
-				return data.normals[index];
+				return meshesData[0].normals[indices[0]];
 			}
 			set {
-				data.normals[index] = value;
+				for (int i = 0; i < meshesData.Length; i++) {
+					meshesData[i].normals[indices[i]] = value;
+				}
 			}
 		}
 
-		public VirtualVertex(Vector3 offset, int index, MeshData d) {
+		public VirtualVertex(Vector3 offset, int index, MeshData data) {
 			this.offset = offset;
-			this.index = index;
-			data = d;
+			indices = new int[1];
+			indices[0] = index;
+			meshesData = new MeshData[1];
+			meshesData[0] = data;
 		}
 
-		public virtual void AverageNormals() { }
+		public void AddMesh(int index, MeshData data) {
+			int[] nIndices = new int[indices.Length + 1];
+			for (int i = 0; i < indices.Length; i++) {
+				nIndices[i] = indices[i];
+			}
+			nIndices[indices.Length] = index;
+			indices = nIndices;
+			MeshData[] nMeshesData = new MeshData[meshesData.Length + 1];
+			for (int i = 0; i < meshesData.Length; i++) {
+				nMeshesData[i] = meshesData[i];
+			}
+			nMeshesData[meshesData.Length] = data;
+			meshesData = nMeshesData;
+		}
+
+		public void AverageNormals() {
+			if (indices.Length < 2) return;
+			Vector3 avgNormal = meshesData[0].normals[indices[0]];
+			for (int i = 1; i < indices.Length; i++) {
+				avgNormal += meshesData[i].normals[indices[i]];
+			}
+			avgNormal.Normalize();
+			for (int i = 0; i < indices.Length; i++) {
+				meshesData[i].normals[indices[i]] = avgNormal;
+			}
+		}
 
 	}
 }

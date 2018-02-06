@@ -4,8 +4,11 @@ using UnityEngine;
 namespace EcoSystem {
 	public class VirtualMesh {
 
-		private Dictionary<Vector2i, ChunkData> data = new Dictionary<Vector2i, ChunkData>();
-		private Dictionary<ChunkMesh, List<VirtualVertex>> virtualVertices = new Dictionary<ChunkMesh, List<VirtualVertex>>();
+		//private Dictionary<Vector2i, ChunkData> data = new Dictionary<Vector2i, ChunkData>();
+		//private Dictionary<ChunkMesh, List<VirtualVertex>> virtualVertices = new Dictionary<ChunkMesh, List<VirtualVertex>>();
+
+		private Dictionary<Vector2i, int[]> indicesPerChunk = new Dictionary<Vector2i, int[]>();
+		private VirtualVertex[] virtualVertices;
 
 		//private VirtualVertex[] vertices;
 		//private int[] indices;
@@ -14,7 +17,7 @@ namespace EcoSystem {
 
 		public VirtualMesh(ETerrain terr) {
 			terrain = terr;
-			Refetch(terr.data.chunks);
+			Refetch();
 		}
 
 		private Dictionary<VirtualVertex, float> vertsByDistance = new Dictionary<VirtualVertex, float>();
@@ -25,13 +28,13 @@ namespace EcoSystem {
 			float existingDistance = 0f;
 			Vector2i[] touching = terrain.ChunkPositionsTouching(new Rect(new Vector2(center.x - range, center.y - range), Vector2.one * range * 2f));
 			for (int i = 0; i < touching.Length; i++) {
-				ChunkData chkData;
-				if (data.TryGetValue(touching[i], out chkData)) {
-					foreach (VirtualVertex vert in virtualVertices[chkData.mesh]) {
-						float distanceSqr = (new Vector2(vert.vertex.x, vert.vertex.z) - center).sqrMagnitude; // TODO unsafe quick local to world transform
+				int[] affectedVertices;
+				if (indicesPerChunk.TryGetValue(touching[i], out affectedVertices)) {
+					for (int affVertIndex = 0; affVertIndex < affectedVertices.Length; affVertIndex++) {
+						float distanceSqr = (new Vector2(virtualVertices[affectedVertices[affVertIndex]].vertex.x, virtualVertices[affectedVertices[affVertIndex]].vertex.z) - center).sqrMagnitude; // TODO unsafe quick local to world transform
 						if (distanceSqr < rangeSqr) {
-							if (!vertsByDistance.TryGetValue(vert, out existingDistance)) {
-								vertsByDistance.Add(vert, distanceSqr);
+							if (!vertsByDistance.TryGetValue(virtualVertices[affectedVertices[affVertIndex]], out existingDistance)) {
+								vertsByDistance.Add(virtualVertices[affectedVertices[affVertIndex]], distanceSqr);
 							}
 						}
 					}
@@ -41,37 +44,34 @@ namespace EcoSystem {
 		}
 
 		public void ApplyModifications() {
-			foreach (ChunkData chkData in data.Values) {
+			foreach (ChunkData chkData in terrain.data.chunks.Values) {
 				chkData.mesh.ApplyModifications();
 			}
 			FixEdgeSeams();
 		}
 
 		private void FixEdgeSeams() {
-			foreach (List<VirtualVertex> verts in virtualVertices.Values) { // TODO avoid re-averaging edge and corner vertices more than once
-				foreach (VirtualVertex vert in verts) {
-					vert.AverageNormals();
-				}
+			for (int i = 0; i < virtualVertices.Length; i++) { // TODO avoid re-averaging edge and corner vertices more than once
+				if (virtualVertices[i] != null) virtualVertices[i].AverageNormals();
 			}
-			foreach (ChunkData chkData in data.Values) {
+			foreach (ChunkData chkData in terrain.data.chunks.Values) {
 				chkData.mesh.ApplyNormalsModifications();
 			}
 		}
 
 		public void Refetch() {
-			Refetch(terrain.data.chunks);
-		}
-
-		public void Refetch(ChunkDictionary chunkDict) {
-			data.Clear();
-			virtualVertices.Clear();
-			foreach (ChunkData chk in chunkDict.Values) {
-				chk.mesh.ResetVirtualVertices();
+			if (terrain.data.chunks.Count == 0) return;
+			indicesPerChunk.Clear();
+			virtualVertices = new VirtualVertex[(terrain.chunksCountX * terrain.actualQuads + 1) * (terrain.chunksCountZ * terrain.actualQuads + 1)];
+			Debug.Log("virtualVertices.Length = " + virtualVertices.Length);
+			foreach (ChunkData chk in terrain.data.chunks.Values) {
+				indicesPerChunk.Add(chk.pos, chk.mesh.GetVirtualVertices(ref virtualVertices, terrain.chunksCountX * terrain.actualQuads + 1, chk.pos, terrain.chunkSize));
 			}
-			foreach (ChunkData chk in chunkDict.Values) {
-				data.Add(chk.pos, chk);
-				virtualVertices.Add(chk.mesh, chk.mesh.GetVirtualVertices(new Vector3(chk.pos.x * terrain.chunkSize.x, 0f, chk.pos.y * terrain.chunkSize.y)));
+			int nullCount = 0;
+			foreach (VirtualVertex vert in virtualVertices) {
+				if (vert == null) nullCount++;
 			}
+			Debug.Log("nullCount = " + nullCount);
 			FixEdgeSeams();
 		}
 
