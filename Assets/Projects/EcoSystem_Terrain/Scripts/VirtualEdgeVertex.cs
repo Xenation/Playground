@@ -4,20 +4,33 @@ namespace EcoSystem {
 	public class VirtualEdgeVertex : VirtualVertex {
 
 		public int secondIndex { get; private set; }
-		protected Vector3[] secondVertices;
-		public override Vector3 vertex {
+		protected MeshData secondData;
+		public override float height {
 			get {
-				return vertices[index];
+				return data.vertices[index].y;
 			}
 			set {
-				vertices[index] = value;
-				secondVertices[secondIndex] = value;
+				data.vertices[index].y = value;
+				secondData.vertices[secondIndex].y = value;
+			}
+		}
+		public override Vector3 normal {
+			get {
+				return data.normals[index];
+			}
+			set {
+				data.normals[index] = value;
+				secondData.normals[secondIndex] = value;
 			}
 		}
 
-		public VirtualEdgeVertex(int index, ref Vector3[] verticesArray, int secondIndex, ref Vector3[] secondArray) : base(index, ref verticesArray) {
+		public VirtualEdgeVertex(Vector3 offset, int firstIndex, MeshData firstD, int secondIndex, MeshData secD) : base(offset, firstIndex, firstD) {
 			this.secondIndex = secondIndex;
-			secondVertices = secondArray;
+			secondData = secD;
+		}
+
+		public new void AverageNormals() {
+			normal = Vector3.Slerp(data.normals[index], secondData.normals[secondIndex], .5f);
 		}
 
 	}

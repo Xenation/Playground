@@ -185,12 +185,12 @@ namespace EcoSystem {
 		private void RaiseBrush(Dictionary<VirtualVertex, float> vertices) {
 			if (brushHardCenterProp.floatValue == 1f) {
 				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
-					pair.Key.vertex += Vector3.up;
+					pair.Key.height += 1f;
 				}
 			} else {
 				float brushSizeSqr = Mathf.Pow(brushSizeProp.floatValue, 2f);
 				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
-					pair.Key.vertex += Vector3.up * Mathf.Clamp01(1 - (pair.Value - brushSizeSqr * brushHardCenterProp.floatValue) / (brushSizeSqr - brushSizeSqr * brushHardCenterProp.floatValue));
+					pair.Key.height += Mathf.Clamp01(1 - (pair.Value - brushSizeSqr * brushHardCenterProp.floatValue) / (brushSizeSqr - brushSizeSqr * brushHardCenterProp.floatValue));
 				}
 			}
 		}
@@ -198,12 +198,12 @@ namespace EcoSystem {
 		private void LowerBrush(Dictionary<VirtualVertex, float> vertices) {
 			if (brushHardCenterProp.floatValue == 1f) {
 				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
-					pair.Key.vertex -= Vector3.up;
+					pair.Key.height -= 1f;
 				}
 			} else {
 				float brushSizeSqr = Mathf.Pow(brushSizeProp.floatValue, 2f);
 				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
-					pair.Key.vertex -= Vector3.up * Mathf.Clamp01(1 - (pair.Value - brushSizeSqr * brushHardCenterProp.floatValue) / (brushSizeSqr - brushSizeSqr * brushHardCenterProp.floatValue));
+					pair.Key.height -= Mathf.Clamp01(1 - (pair.Value - brushSizeSqr * brushHardCenterProp.floatValue) / (brushSizeSqr - brushSizeSqr * brushHardCenterProp.floatValue));
 				}
 			}
 		}

@@ -4,7 +4,38 @@ using UnityEngine;
 namespace EcoSystem {
 	[Serializable]
 	public struct Vector2i {
-		
+
+		public static Vector2i front {
+			get {
+				return new Vector2i(0, 1);
+			}
+		}
+		public static Vector2i right {
+			get {
+				return new Vector2i(1, 0);
+			}
+		}
+		public static Vector2i back {
+			get {
+				return new Vector2i(0, -1);
+			}
+		}
+		public static Vector2i left {
+			get {
+				return new Vector2i(-1, 0);
+			}
+		}
+		public static Vector2i zero {
+			get {
+				return new Vector2i(0, 0);
+			}
+		}
+		public static Vector2i one {
+			get {
+				return new Vector2i(1, 1);
+			}
+		}
+
 		public int x, y;
 
 		public Vector2i(int x, int y) {

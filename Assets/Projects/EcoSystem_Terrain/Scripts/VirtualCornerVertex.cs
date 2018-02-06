@@ -4,26 +4,41 @@ namespace EcoSystem {
 	public class VirtualCornerVertex : VirtualEdgeVertex {
 
 		public int thirdIndex { get; private set; }
-		protected Vector3[] thirdVertices;
+		protected MeshData thirdData;
 		public int fourthIndex { get; private set; }
-		protected Vector3[] fourthVertices;
-		public override Vector3 vertex {
+		protected MeshData fourthData;
+		public override float height {
 			get {
-				return vertices[index];
+				return data.vertices[index].y;
 			}
 			set {
-				vertices[index] = value;
-				secondVertices[secondIndex] = value;
-				thirdVertices[thirdIndex] = value;
-				fourthVertices[fourthIndex] = value;
+				data.vertices[index].y = value;
+				secondData.vertices[secondIndex].y = value;
+				thirdData.vertices[thirdIndex].y = value;
+				fourthData.vertices[fourthIndex].y = value;
+			}
+		}
+		public override Vector3 normal {
+			get {
+				return data.normals[index];
+			}
+			set {
+				data.normals[index] = value;
+				secondData.normals[secondIndex] = value;
+				thirdData.normals[thirdIndex] = value;
+				fourthData.normals[fourthIndex] = value;
 			}
 		}
 
-		public VirtualCornerVertex(int index, ref Vector3[] verticesArray, int secondIndex, ref Vector3[] secondArray, int thirdIndex, ref Vector3[] thirdArray, int fourthIndex, ref Vector3[] fourthArray) : base(index, ref verticesArray, secondIndex, ref secondArray) {
+		public VirtualCornerVertex(Vector3 offset, int firstIndex, MeshData firstD, int secondIndex, MeshData secondD, int thirdIndex, MeshData thirdD, int fourthIndex, MeshData fourthD) : base(offset, firstIndex, firstD, secondIndex, secondD) {
 			this.thirdIndex = thirdIndex;
-			thirdVertices = thirdArray;
+			thirdData = thirdD;
 			this.fourthIndex = fourthIndex;
-			fourthVertices = fourthArray;
+			fourthData = fourthD;
+		}
+
+		public new void AverageNormals() {
+			normal = Vector3.Slerp(Vector3.Slerp(data.normals[index], secondData.normals[secondIndex], .5f), Vector3.Slerp(thirdData.normals[thirdIndex], fourthData.normals[fourthIndex], .5f), .5f);
 		}
 
 	}

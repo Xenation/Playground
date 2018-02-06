@@ -58,9 +58,9 @@ namespace EcoSystem {
 			foreach (ChunkData chkData in data.chunks.Values) {
 				EChunk toLoad;
 				if (chunks.TryGetValue(chkData.pos, out toLoad)) {
-					toLoad.Init(chkData);
+					toLoad.Init(data, chkData);
 				} else {
-					chunks.Add(chkData.pos, EChunk.CreateChunk(transform, chkData));
+					chunks.Add(chkData.pos, EChunk.CreateChunk(transform, data, chkData));
 				}
 			}
 			virtualMesh = new VirtualMesh(this);
@@ -167,6 +167,7 @@ namespace EcoSystem {
 			}
 			foreach (EChunk chk in chunks.Values) {
 				chk.SetResolution(quads);
+				chk.RebuildCollider();
 			}
 			virtualMesh.Refetch();
 		}
