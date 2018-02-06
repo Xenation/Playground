@@ -8,6 +8,13 @@ namespace EcoSystem {
 	[CustomEditor(typeof(ETerrain))]
 	public class ETerrainEditor : Editor {
 
+		private enum Tool {
+			RaiseLower,
+			Flatten,
+			Smooth
+		}
+
+#region ATTRIBUTES
 		private ETerrain terrain;
 
 		// TERRAIN PARAMS
@@ -28,11 +35,19 @@ namespace EcoSystem {
 		private SerializedProperty brushSizeProp;
 		private SerializedProperty brushHardCenterProp;
 		private SerializedProperty brushDensityProp;
+		private SerializedProperty flattenHeightProp;
 		private bool isPainting = false;
 		private bool isMouseOverTerrain = false;
 		private bool isClicking = false;
 		private bool shift = false;
+		private Tool selectedTool = Tool.RaiseLower;
+		private bool isRaiseLowerTool { get { return selectedTool == Tool.RaiseLower; } }
+		private bool isFlattenTool { get { return selectedTool == Tool.Flatten; } }
+		private bool isSmoothTool { get { return selectedTool == Tool.Smooth; } }
+		#endregion
 
+#region METHODS
+#region Initialization
 		public void OnEnable() {
 			terrain = (ETerrain) serializedObject.targetObject;
 			terrain.LoadData(); // TODO Load at scene load instead of selection of terrain
@@ -52,8 +67,11 @@ namespace EcoSystem {
 			brushSizeProp = serializedObject.FindProperty("brushSize");
 			brushHardCenterProp = serializedObject.FindProperty("brushHardCenter");
 			brushDensityProp = serializedObject.FindProperty("brushDensity");
+			flattenHeightProp = serializedObject.FindProperty("flattenHeight");
 		}
+#endregion
 
+#region GUI
 		public override void OnInspectorGUI() {
 			serializedObject.Update();
 			
@@ -103,9 +121,25 @@ namespace EcoSystem {
 
 			// TOOLS
 			EditorGUILayout.LabelField("TOOLS", EditorStyles.boldLabel);
+			EditorGUILayout.BeginHorizontal();
+			if (GUILayout.Toggle(isRaiseLowerTool, "Raise/Lower", EditorStyles.miniButtonLeft)) {
+				selectedTool = Tool.RaiseLower;
+			}
+			if (GUILayout.Toggle(isFlattenTool, "Flatten", EditorStyles.miniButtonMid)) {
+				selectedTool = Tool.Flatten;
+			}
+			if (GUILayout.Toggle(isSmoothTool, "Smooth", EditorStyles.miniButtonRight)) {
+				selectedTool = Tool.Smooth;
+			}
+			EditorGUILayout.EndHorizontal();
 			EditorGUILayout.PropertyField(brushSizeProp);
 			EditorGUILayout.PropertyField(brushHardCenterProp);
 			EditorGUILayout.PropertyField(brushDensityProp);
+			switch (selectedTool) {
+				case Tool.Flatten:
+					EditorGUILayout.PropertyField(flattenHeightProp);
+					break;
+			}
 
 			serializedObject.ApplyModifiedProperties();
 		}
@@ -139,15 +173,12 @@ namespace EcoSystem {
 					break;
 			}
 		}
-		
+#endregion
+
+#region Updating
 		private void Update() {
 			if (isPainting) {
-				if (shift) {
-					LowerBrush(terrain.virtualMesh.GetVerticesInRange2D(new Vector2(brushCenter.x, brushCenter.z), brushSizeProp.floatValue));
-				} else {
-					RaiseBrush(terrain.virtualMesh.GetVerticesInRange2D(new Vector2(brushCenter.x, brushCenter.z), brushSizeProp.floatValue));
-				}
-				terrain.virtualMesh.ApplyModifications();
+				Brush();
 			}
 		}
 		
@@ -171,6 +202,28 @@ namespace EcoSystem {
 					terrain.RebuildCollisions();
 				}
 			}
+		}
+#endregion
+
+#region Brushes
+		private void Brush() {
+			Dictionary<VirtualVertex, float> inRange = terrain.virtualMesh.GetVerticesInRange2D(new Vector2(brushCenter.x, brushCenter.z), brushSizeProp.floatValue);
+			switch (selectedTool) {
+				case Tool.RaiseLower:
+					if (shift) {
+						LowerBrush(inRange);
+					} else {
+						RaiseBrush(inRange);
+					}
+					break;
+				case Tool.Flatten:
+					FlattenBrush(inRange);
+					break;
+				case Tool.Smooth:
+					SmoothBrush(inRange);
+					break;
+			}
+			terrain.virtualMesh.ApplyModifications();
 		}
 		
 		private void RaiseBrush(Dictionary<VirtualVertex, float> vertices) {
@@ -201,6 +254,28 @@ namespace EcoSystem {
 			}
 		}
 
+		private void FlattenBrush(Dictionary<VirtualVertex, float> vertices) {
+			if (brushHardCenterProp.floatValue == 1f) {
+				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
+					pair.Key.height = flattenHeightProp.floatValue;
+				}
+			} else {
+				float strength = 0f;
+				float brushSizeSqr = Mathf.Pow(brushSizeProp.floatValue, 2f);
+				float brushHardCenterSqr = Mathf.Pow(brushHardCenterProp.floatValue, 2f);
+				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
+					strength = Mathf.Clamp01(1 - (pair.Value - brushSizeSqr * brushHardCenterSqr) / (brushSizeSqr - brushSizeSqr * brushHardCenterSqr));
+					pair.Key.height = flattenHeightProp.floatValue + (pair.Key.height - flattenHeightProp.floatValue) * (1 - strength); // TODO use height of vertex before brush to avoid incremental change
+				}
+			}
+		}
+
+		private void SmoothBrush(Dictionary<VirtualVertex, float> vertices) {
+
+		}
+#endregion
+
+#region Inputs
 		private void SceneKeydown(KeyCode key) {
 			if (key == KeyCode.Keypad0) {
 				
@@ -227,6 +302,8 @@ namespace EcoSystem {
 				}
 			}
 		}
+#endregion
+#endregion
 
 	}
 }

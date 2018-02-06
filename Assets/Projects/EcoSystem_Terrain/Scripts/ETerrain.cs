@@ -42,6 +42,8 @@ namespace EcoSystem {
 		[Range(0f, 1f)]
 		[SerializeField]
 		private float brushDensity = 1f;
+		[SerializeField]
+		private float flattenHeight = 0f;
 #endif
 		#endregion
 		#endregion
