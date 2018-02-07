@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace Playground.Editor {
+namespace Xenon.Editor {
 	public class MenuItems {
 
 		[MenuItem("GameObject/Empty At Origin", false, 0)]

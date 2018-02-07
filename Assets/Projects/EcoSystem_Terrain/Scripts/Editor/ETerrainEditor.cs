@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using Xenon;
 
 namespace EcoSystem {
 	[CustomEditor(typeof(ETerrain))]
@@ -44,6 +45,8 @@ namespace EcoSystem {
 		private bool isRaiseLowerTool { get { return selectedTool == Tool.RaiseLower; } }
 		private bool isFlattenTool { get { return selectedTool == Tool.Flatten; } }
 		private bool isSmoothTool { get { return selectedTool == Tool.Smooth; } }
+
+		private GUIStyle vertexDebugStyle;
 		#endregion
 
 #region METHODS
@@ -53,6 +56,8 @@ namespace EcoSystem {
 			terrain.LoadData(); // TODO Load at scene load instead of selection of terrain
 			InitProperties();
 			toolHash = GetHashCode();
+			vertexDebugStyle = new GUIStyle();
+			vertexDebugStyle.normal.textColor = Color.blue;
 		}
 
 		private void InitProperties() {
@@ -202,28 +207,35 @@ namespace EcoSystem {
 					terrain.RebuildCollisions();
 				}
 			}
+			VirtualVertex pointed = terrain.virtualMesh.GetVertexAtWorldPos(brushCenter);
+			Handles.Label(pointed.vertex, pointed.ToString(), vertexDebugStyle);
 		}
 #endregion
 
 #region Brushes
 		private void Brush() {
-			Dictionary<VirtualVertex, float> inRange = terrain.virtualMesh.GetVerticesInRange2D(new Vector2(brushCenter.x, brushCenter.z), brushSizeProp.floatValue);
+			TimingDebugger.Start("Brush");
+			Dictionary<VirtualVertex, float> inRangeByDist;
 			switch (selectedTool) {
 				case Tool.RaiseLower:
+					inRangeByDist = terrain.virtualMesh.GetVerticesByDistanceIn2DRange(new Vector2(brushCenter.x, brushCenter.z), brushSizeProp.floatValue);
 					if (shift) {
-						LowerBrush(inRange);
+						LowerBrush(inRangeByDist);
 					} else {
-						RaiseBrush(inRange);
+						RaiseBrush(inRangeByDist);
 					}
 					break;
 				case Tool.Flatten:
-					FlattenBrush(inRange);
+					inRangeByDist = terrain.virtualMesh.GetVerticesByDistanceIn2DRange(new Vector2(brushCenter.x, brushCenter.z), brushSizeProp.floatValue);
+					FlattenBrush(inRangeByDist);
 					break;
 				case Tool.Smooth:
-					SmoothBrush(inRange);
+					Dictionary<Vector2i, VirtualVertex> inRangeByPos = terrain.virtualMesh.GetVerticesByPositionIn2DRange(new Vector2(brushCenter.x, brushCenter.z), brushSizeProp.floatValue);
+					SmoothBrush(inRangeByPos);
 					break;
 			}
 			terrain.virtualMesh.ApplyModifications();
+			TimingDebugger.Stop();
 		}
 		
 		private void RaiseBrush(Dictionary<VirtualVertex, float> vertices) {
@@ -270,8 +282,21 @@ namespace EcoSystem {
 			}
 		}
 
-		private void SmoothBrush(Dictionary<VirtualVertex, float> vertices) {
-
+		private void SmoothBrush(Dictionary<Vector2i, VirtualVertex> vertices) {
+			Vector2i[] offsets = { new Vector2i(0, 1), new Vector2i(1, 1), new Vector2i(1, 0), new Vector2i(0, -1), new Vector2i(-1, -1), new Vector2i(-1, 0), new Vector2i(-1, 1) };
+			foreach (KeyValuePair<Vector2i, VirtualVertex> pair in vertices) {
+				float height = pair.Value.height;
+				int count = 1;
+				for (int i = 0; i < offsets.Length; i++) {
+					VirtualVertex v;
+					if (vertices.TryGetValue(pair.Key + offsets[i], out v)) {
+						height += v.height;
+						count++;
+					}
+				}
+				height /= count;
+				pair.Value.height = height;
+			}
 		}
 #endregion
 

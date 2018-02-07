@@ -69,5 +69,9 @@ namespace EcoSystem {
 			}
 		}
 
+		public override string ToString() {
+			return "Virtual Vertex (" + indices.Length + "):\n  vertex: " + vertex + "\n  normal: " + normal;
+		}
+
 	}
 }

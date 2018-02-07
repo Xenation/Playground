@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Xenon;
 
 namespace EcoSystem {
 	[AddComponentMenu("EcoSystem/Terrain")]
@@ -52,6 +53,7 @@ namespace EcoSystem {
 
 		public void LoadData() {
 			if (data == null) return;
+			TimingDebugger.Start("Load Data");
 			// Find Existing "Incomplete" chunks
 			chunks.Clear();
 			EChunk[] existing = transform.GetComponentsInChildren<EChunk>();
@@ -62,15 +64,17 @@ namespace EcoSystem {
 			foreach (ChunkData chkData in data.chunks.Values) {
 				EChunk toLoad;
 				if (chunks.TryGetValue(chkData.pos, out toLoad)) {
-					toLoad.Init(data, chkData);
+					toLoad.Init(chkData);
 				} else {
 					chunks.Add(chkData.pos, EChunk.CreateChunk(transform, data, chkData));
 				}
 			}
 			virtualMesh = new VirtualMesh(this);
+			TimingDebugger.Stop();
 		}
 
 		public void Generate() {
+			TimingDebugger.Start("Generation");
 			Clear();
 			for (int z = 0; z < chunksCountZ; z++) {
 				for (int x = 0; x < chunksCountX; x++) {
@@ -78,6 +82,7 @@ namespace EcoSystem {
 				}
 			}
 			virtualMesh = new VirtualMesh(this);
+			TimingDebugger.Stop();
 		}
 
 		private void AddChunkAt(Vector2i pos) {
@@ -104,11 +109,13 @@ namespace EcoSystem {
 		}
 
 		public void Clear() {
+			TimingDebugger.Start("Clear");
 			foreach (EChunk chk in chunks.Values) {
 				chk.UnbindData(data);
 				DestroyImmediate(chk.gameObject);
 			}
 			chunks.Clear();
+			TimingDebugger.Stop();
 		}
 
 		public void UpdateTerrainMaterial() {
@@ -124,13 +131,16 @@ namespace EcoSystem {
 		}
 
 		public void ModifyChunkSize(Vector2 nSize) {
+			TimingDebugger.Start("Modify Chunk Size");
 			foreach (EChunk chk in chunks.Values) {
 				chk.Resize(nSize);
 				chk.RebuildCollider();
 			}
+			TimingDebugger.Stop();
 		}
 
 		public void ResizeChunkGrid(int nCountX, int nCountZ) {
+			TimingDebugger.Start("Resize Chunk Grid");
 			if (nCountX == chunksCountX && nCountZ == chunksCountZ) return;
 			// TODO optimise added and then removed corner when downsizing in one dimension and upsizing in the other
 			HashSet<Vector2i> removePositions = new HashSet<Vector2i>();
@@ -163,9 +173,11 @@ namespace EcoSystem {
 			}
 			RemoveChunks(removePositions);
 			AddChunks(addPositions);
+			TimingDebugger.Stop();
 		}
 		
 		public void SetChunkResolution(int quads) {
+			TimingDebugger.Start("SetResolution");
 			if (!IsPowerOfTwo(quads)) {
 				quads = NextPowerOfTwo(quads);
 			}
@@ -175,12 +187,15 @@ namespace EcoSystem {
 				chk.RebuildCollider();
 			}
 			virtualMesh.Refetch();
+			TimingDebugger.Stop();
 		}
 
 		public void RebuildCollisions() {
+			TimingDebugger.Start("Collision Rebuild");
 			foreach (EChunk chk in chunks.Values) {
 				chk.RebuildCollider();
 			}
+			TimingDebugger.Stop();
 		}
 
 		private bool IsPowerOfTwo(int x) {

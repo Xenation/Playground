@@ -36,7 +36,7 @@ namespace EcoSystem {
 			chunkObj.transform.parent = parent;
 			chunkObj.transform.localPosition = new Vector3(data.pos.x * data.mesh.Size.x, 0f, data.pos.y * data.mesh.Size.y);
 			EChunk chk = chunkObj.AddComponent<EChunk>();
-			chk.Init(terrainData, data);
+			chk.Init(data);
 			return chk;
 		}
 
@@ -49,7 +49,7 @@ namespace EcoSystem {
 			return chk;
 		}
 
-		public void Init(ETerrainData terrainData, ChunkData data) {
+		public void Init(ChunkData data) {
 			this.data = data;
 			meshRenderer = GetComponent<MeshRenderer>();
 			filter = GetComponent<MeshFilter>();
@@ -57,7 +57,6 @@ namespace EcoSystem {
 			data.mesh.RecreateMesh();
 			filter.sharedMesh = data.mesh;
 			RebuildCollider();
-			LinkMeshes(terrainData);
 		}
 
 		private void Init(ETerrainData terrainData, Vector2i pos, Vector2 chkSize, int quads) {
@@ -72,38 +71,6 @@ namespace EcoSystem {
 			filter.sharedMesh = data.mesh;
 			data.mesh.GeneratePlane();
 			RebuildCollider();
-			LinkMeshes(terrainData);
-		}
-
-		private void LinkMeshes(ETerrainData terrainData) {
-			if (data.mesh.front == null) {
-				ChunkData front;
-				if (terrainData.chunks.TryGetValue(Pos + Vector2i.front, out front)) {
-					data.mesh.front = front.mesh;
-					front.mesh.back = data.mesh;
-				}
-			}
-			if (data.mesh.right == null) {
-				ChunkData right;
-				if (terrainData.chunks.TryGetValue(Pos + Vector2i.right, out right)) {
-					data.mesh.right = right.mesh;
-					right.mesh.left = data.mesh;
-				}
-			}
-			if (data.mesh.back == null) {
-				ChunkData back;
-				if (terrainData.chunks.TryGetValue(Pos + Vector2i.back, out back)) {
-					data.mesh.back = back.mesh;
-					back.mesh.front = data.mesh;
-				}
-			}
-			if (data.mesh.left == null) {
-				ChunkData left;
-				if (terrainData.chunks.TryGetValue(Pos + Vector2i.left, out left)) {
-					data.mesh.left = left.mesh;
-					left.mesh.right = data.mesh;
-				}
-			}
 		}
 
 		public void RebuildCollider() {

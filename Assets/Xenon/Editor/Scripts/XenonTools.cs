@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace Playground.Editor {
+namespace Xenon.Editor {
 	public class XenonTools : EditorWindow {
 
 		private const float WIN_MIN_WIDTH = 300f;
@@ -21,6 +21,10 @@ namespace Playground.Editor {
 			
 			if (GUILayout.Button("Screenshot Tool")) {
 				ScreenshotTool.ShowWindow();
+			}
+
+			if (GUILayout.Button("Timings Debugger")) {
+				TimingDebuggerWindow.ShowWindow();
 			}
 
 		}

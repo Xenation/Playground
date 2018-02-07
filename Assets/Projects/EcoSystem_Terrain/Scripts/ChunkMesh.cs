@@ -54,20 +54,6 @@ namespace EcoSystem {
 		[SerializeField]
 		private int quads = 1;
 
-		public ChunkMesh front;
-		public ChunkMesh right;
-		public ChunkMesh back;
-		public ChunkMesh left;
-
-		private List<VirtualVertex> frontVertices = new List<VirtualVertex>();
-		private List<VirtualVertex> rightVertices = new List<VirtualVertex>();
-		private List<VirtualVertex> backVertices = new List<VirtualVertex>();
-		private List<VirtualVertex> leftVertices = new List<VirtualVertex>();
-		private VirtualVertex flVertex = null;
-		private VirtualVertex frVertex = null;
-		private VirtualVertex brVertex = null;
-		private VirtualVertex blVertex = null;
-
 		public ChunkMesh(Vector2 size, int quads) {
 			mesh = new Mesh();
 			data = new MeshData();
@@ -82,7 +68,6 @@ namespace EcoSystem {
 			data.normals = mesh.normals;
 			data.indices = mesh.GetIndices(0);
 			ResetRelativePositions();
-			ResetVirtualVertices();
 		}
 
 		public void ApplyModifications() {
@@ -142,7 +127,6 @@ namespace EcoSystem {
 			ApplyModifications();
 			quads = nQuads;
 			ResetRelativePositions();
-			ResetVirtualVertices();
 		}
 
 		public float GetHeightAt(Vector2 pos, Vector2 quadSize) {
@@ -197,17 +181,6 @@ namespace EcoSystem {
 				}
 			}
 			return virtualIndices;
-		}
-
-		public void ResetVirtualVertices() {
-			frontVertices = new List<VirtualVertex>();
-			rightVertices = new List<VirtualVertex>();
-			backVertices = new List<VirtualVertex>();
-			leftVertices = new List<VirtualVertex>();
-			flVertex = null;
-			frVertex = null;
-			brVertex = null;
-			blVertex = null;
 		}
 
 		public int GetVertexIndex(int vertX, int vertY) {

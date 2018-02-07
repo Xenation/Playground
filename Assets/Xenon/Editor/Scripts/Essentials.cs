@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace Playground.Editor {
-	public class Essentials : EditorWindow {
+namespace Xenon.Editor {
+	public class Essentials : XenonWindow<Essentials> {
 
-		private const float WIN_MIN_WIDTH = 300f;
-		private const float WIN_MIN_HEIGHT = 275f;
+		protected override float minWidth { get { return 300f; } }
+		protected override float minHeight { get { return 275f; } }
+		protected override string titleStr { get { return "Essentials"; } }
 
 		private Color colorX;
 		private Color colorY;
@@ -38,11 +39,6 @@ namespace Playground.Editor {
 		private bool applyCameraParameters;
 
 		private GameObject selected = null;
-
-		public static void ShowWindow() {
-			Essentials win = GetWindow<Essentials>("Essentials");
-			win.minSize = new Vector2(WIN_MIN_WIDTH, WIN_MIN_HEIGHT);
-		}
 
 		public void ResetModifiers() {
 			ctrl = false;
@@ -157,7 +153,7 @@ namespace Playground.Editor {
 			UpdateHandles(scene);
 
 			Event e = Event.current;
-			if (!shortcutsEnabled && (e.type == EventType.keyDown || e.type == EventType.KeyUp)) {
+			if (!shortcutsEnabled && (e.type == EventType.KeyDown || e.type == EventType.KeyUp)) {
 				return;
 			}
 			shift = e.shift;
