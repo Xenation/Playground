@@ -98,6 +98,11 @@ namespace EcoSystem {
 			return GetVertexAtVertPos(quadPos);
 		}
 
+		public VirtualVertex GetVertexAt(Vector2i vertPos) {
+			if (vertPos.x < 0 || vertPos.x > terrain.actualQuads * terrain.chunksCountX || vertPos.y < 0 || vertPos.y > terrain.actualQuads * terrain.chunksCountZ) return null;
+			return GetVertexAtVertPos(vertPos);
+		}
+
 		private VirtualVertex GetVertexAtVertPos(Vector2i pos) {
 			return GetVertexAtVertPos(pos.x, pos.y);
 		}

@@ -239,6 +239,7 @@ namespace EcoSystem {
 		}
 		
 		private void RaiseBrush(Dictionary<VirtualVertex, float> vertices) {
+			TimingDebugger.Start("Raise");
 			if (brushHardCenterProp.floatValue == 1f) {
 				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
 					pair.Key.height += brushDensityProp.floatValue;
@@ -250,9 +251,11 @@ namespace EcoSystem {
 					pair.Key.height += Mathf.Clamp01(1 - (pair.Value - brushSizeSqr * brushHardCenterSqr) / (brushSizeSqr - brushSizeSqr * brushHardCenterSqr)) * brushDensityProp.floatValue;
 				}
 			}
+			TimingDebugger.Stop();
 		}
 
 		private void LowerBrush(Dictionary<VirtualVertex, float> vertices) {
+			TimingDebugger.Start("Lower");
 			if (brushHardCenterProp.floatValue == 1f) {
 				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
 					pair.Key.height -= brushDensityProp.floatValue;
@@ -264,9 +267,11 @@ namespace EcoSystem {
 					pair.Key.height -= Mathf.Clamp01(1 - (pair.Value - brushSizeSqr * brushHardCenterSqr) / (brushSizeSqr - brushSizeSqr * brushHardCenterSqr)) * brushDensityProp.floatValue;
 				}
 			}
+			TimingDebugger.Stop();
 		}
 
 		private void FlattenBrush(Dictionary<VirtualVertex, float> vertices) {
+			TimingDebugger.Start("Flatten");
 			if (brushHardCenterProp.floatValue == 1f) {
 				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
 					pair.Key.height = flattenHeightProp.floatValue;
@@ -280,18 +285,33 @@ namespace EcoSystem {
 					pair.Key.height = flattenHeightProp.floatValue + (pair.Key.height - flattenHeightProp.floatValue) * (1 - strength); // TODO use height of vertex before brush to avoid incremental change
 				}
 			}
+			TimingDebugger.Stop();
 		}
 
 		private void SmoothBrush(Dictionary<Vector2i, VirtualVertex> vertices) {
-			Vector2i[] offsets = { new Vector2i(0, 1), new Vector2i(1, 1), new Vector2i(1, 0), new Vector2i(0, -1), new Vector2i(-1, -1), new Vector2i(-1, 0), new Vector2i(-1, 1) };
+			TimingDebugger.Start("Smooth");
+			Vector2i[] offsetsVerti = { new Vector2i(0, 1), new Vector2i(0, -1) };
+			Vector2i[] offsetsHoriz = { new Vector2i(1, 0), new Vector2i(-1, 0) };
+			BlurPass(vertices, offsetsVerti); // Vertical Pass
+			BlurPass(vertices, offsetsHoriz); // Horizontal Pass
+			TimingDebugger.Stop();
+		}
+
+		private void BlurPass(Dictionary<Vector2i, VirtualVertex> vertices, Vector2i[] offsets) {
 			foreach (KeyValuePair<Vector2i, VirtualVertex> pair in vertices) {
 				float height = pair.Value.height;
-				int count = 1;
+				float count = 1;
 				for (int i = 0; i < offsets.Length; i++) {
 					VirtualVertex v;
 					if (vertices.TryGetValue(pair.Key + offsets[i], out v)) {
-						height += v.height;
-						count++;
+						height += v.height * brushDensityProp.floatValue;
+						count += brushDensityProp.floatValue;
+					} else {
+						v = terrain.virtualMesh.GetVertexAt(pair.Key + offsets[i]);
+						if (v != null) {
+							height += v.height * brushDensityProp.floatValue;
+							count += brushDensityProp.floatValue;
+						}
 					}
 				}
 				height /= count;
