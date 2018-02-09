@@ -92,7 +92,7 @@ namespace EcoSystem {
 		public void GeneratePlane() {
 			mesh.GeneratePlane(size, quads, quads);
 			mesh.RecalculateNormals();
-			data.normals = mesh.normals;
+			mesh.colors = new Color[mesh.vertexCount];
 			Resync();
 		}
 

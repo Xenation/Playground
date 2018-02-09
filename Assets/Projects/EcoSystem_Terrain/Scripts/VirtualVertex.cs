@@ -33,6 +33,16 @@ namespace EcoSystem {
 				}
 			}
 		}
+		public Color color {
+			get {
+				return meshesData[0].colors[indices[0]];
+			}
+			set {
+				for (int i = 0; i < meshesData.Length; i++) {
+					meshesData[i].colors[indices[i]] = value;
+				}
+			}
+		}
 
 		public VirtualVertex(Vector3 offset, int index, MeshData data) {
 			this.offset = offset;

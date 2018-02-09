@@ -49,6 +49,12 @@ namespace EcoSystem {
 		private float brushDensity = 1f;
 		[SerializeField]
 		private float flattenHeight = 0f;
+		[SerializeField]
+		private AnimationCurve brushCurve;
+		[SerializeField]
+		private bool brushUseCurve;
+		[SerializeField]
+		private Color brushPaintColor;
 #endif
 		#endregion
 		#endregion
@@ -127,8 +133,8 @@ namespace EcoSystem {
 		}
 
 		public void ResizeChunkGrid(int nCountX, int nCountZ) {
-			TimingDebugger.Start("Resize Chunk Grid");
 			if (!isGenerated || (nCountX == chunksCountX && nCountZ == chunksCountZ)) return;
+			TimingDebugger.Start("Resize Chunk Grid");
 			// TODO optimise added and then removed corner when downsizing in one dimension and upsizing in the other
 			HashSet<Vector2i> removePositions = new HashSet<Vector2i>();
 			HashSet<Vector2i> addPositions = new HashSet<Vector2i>();

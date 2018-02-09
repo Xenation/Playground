@@ -12,7 +12,8 @@ namespace EcoSystem {
 		private enum Tool {
 			RaiseLower,
 			Flatten,
-			Smooth
+			Smooth,
+			VertexPaint
 		}
 
 #region ATTRIBUTES
@@ -37,6 +38,9 @@ namespace EcoSystem {
 		private SerializedProperty brushHardCenterProp;
 		private SerializedProperty brushDensityProp;
 		private SerializedProperty flattenHeightProp;
+		private SerializedProperty brushCurveProp;
+		private SerializedProperty brushUseCurveProp;
+		private SerializedProperty brushPaintColorProp;
 		private bool isPainting = false;
 		private bool isMouseOverTerrain = false;
 		private bool isClicking = false;
@@ -45,6 +49,7 @@ namespace EcoSystem {
 		private bool isRaiseLowerTool { get { return selectedTool == Tool.RaiseLower; } }
 		private bool isFlattenTool { get { return selectedTool == Tool.Flatten; } }
 		private bool isSmoothTool { get { return selectedTool == Tool.Smooth; } }
+		private bool isVertexPaintTool { get { return selectedTool == Tool.VertexPaint; } }
 
 		private GUIStyle vertexDebugStyle;
 		#endregion
@@ -73,6 +78,9 @@ namespace EcoSystem {
 			brushHardCenterProp = serializedObject.FindProperty("brushHardCenter");
 			brushDensityProp = serializedObject.FindProperty("brushDensity");
 			flattenHeightProp = serializedObject.FindProperty("flattenHeight");
+			brushCurveProp = serializedObject.FindProperty("brushCurve");
+			brushUseCurveProp = serializedObject.FindProperty("brushUseCurve");
+			brushPaintColorProp = serializedObject.FindProperty("brushPaintColor");
 		}
 #endregion
 
@@ -127,19 +135,41 @@ namespace EcoSystem {
 			// TOOLS
 			EditorGUILayout.LabelField("TOOLS", EditorStyles.boldLabel);
 			EditorGUILayout.BeginHorizontal();
-			if (GUILayout.Toggle(isRaiseLowerTool, "Raise/Lower", EditorStyles.miniButtonLeft)) {
+			if (GUILayout.Toggle(isRaiseLowerTool, "Raise/Lower", EditorStyles.miniButtonLeft, GUILayout.MinHeight(30f))) {
 				selectedTool = Tool.RaiseLower;
 			}
-			if (GUILayout.Toggle(isFlattenTool, "Flatten", EditorStyles.miniButtonMid)) {
+			if (GUILayout.Toggle(isFlattenTool, "Flatten", EditorStyles.miniButtonMid, GUILayout.MinHeight(30f))) {
 				selectedTool = Tool.Flatten;
 			}
-			if (GUILayout.Toggle(isSmoothTool, "Smooth", EditorStyles.miniButtonRight)) {
+			if (GUILayout.Toggle(isSmoothTool, "Smooth", EditorStyles.miniButtonMid, GUILayout.MinHeight(30f))) {
 				selectedTool = Tool.Smooth;
 			}
+			if (GUILayout.Toggle(isVertexPaintTool, "Paint", EditorStyles.miniButtonRight, GUILayout.MinHeight(30f))) {
+				selectedTool = Tool.VertexPaint;
+			}
 			EditorGUILayout.EndHorizontal();
+
 			EditorGUILayout.PropertyField(brushSizeProp);
-			EditorGUILayout.PropertyField(brushHardCenterProp);
-			EditorGUILayout.PropertyField(brushDensityProp);
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.PrefixLabel("Brush Shape");
+			if (GUILayout.Toggle(!brushUseCurveProp.boolValue, "Simple", EditorStyles.miniButtonLeft)) {
+				brushUseCurveProp.boolValue = false;
+			}
+			if (GUILayout.Toggle(brushUseCurveProp.boolValue, "Curve", EditorStyles.miniButtonRight)) {
+				brushUseCurveProp.boolValue = true;
+			}
+			EditorGUILayout.EndHorizontal();
+			if (brushUseCurveProp.boolValue) {
+				EditorGUILayout.PropertyField(brushCurveProp);
+			} else {
+				EditorGUILayout.PropertyField(brushHardCenterProp);
+			}
+			if (!isFlattenTool) {
+				EditorGUILayout.PropertyField(brushDensityProp);
+			}
+			if (isVertexPaintTool) {
+				EditorGUILayout.PropertyField(brushPaintColorProp);
+			}
 			switch (selectedTool) {
 				case Tool.Flatten:
 					EditorGUILayout.PropertyField(flattenHeightProp);
@@ -191,7 +221,7 @@ namespace EcoSystem {
 			SceneView view = SceneView.currentDrawingSceneView;
 			Ray ray = HandleUtility.GUIPointToWorldRay(mousePos);
 			RaycastHit hit;
-			if (terrain.Raycast(ray, out hit, 1000f)) {
+			if (terrain.Raycast(ray, out hit, 5000f)) {
 				brushCenter = hit.point;
 				Handles.color = Color.red;
 				Handles.DrawWireDisc(brushCenter, Vector3.up, brushSizeProp.floatValue);
@@ -235,9 +265,21 @@ namespace EcoSystem {
 					Dictionary<Vector2i, VirtualVertex> inRangeByPos = terrain.virtualMesh.GetVerticesByPositionIn2DRange(new Vector2(brushCenter.x, brushCenter.z), brushSizeProp.floatValue);
 					SmoothBrush(inRangeByPos);
 					break;
+				case Tool.VertexPaint:
+					inRangeByDist = terrain.virtualMesh.GetVerticesByDistanceIn2DRange(new Vector2(brushCenter.x, brushCenter.z), brushSizeProp.floatValue);
+					VertexPaintBrush(inRangeByDist);
+					break;
 			}
 			terrain.virtualMesh.ApplyModifications();
 			TimingDebugger.Stop();
+		}
+
+		private float StrengthFromDistanceSqr(float distanceSqr, float brushSizeSqr, float brushHardCenterSqr) {
+			if (brushUseCurveProp.boolValue) {
+				return brushCurveProp.animationCurveValue.Evaluate(1f - (distanceSqr / brushSizeSqr)) * brushDensityProp.floatValue;
+			} else {
+				return Mathf.Clamp01(1 - (distanceSqr - brushSizeSqr * brushHardCenterSqr) / (brushSizeSqr - brushSizeSqr * brushHardCenterSqr)) * brushDensityProp.floatValue;
+			}
 		}
 		
 		private void RaiseBrush(Dictionary<VirtualVertex, float> vertices) {
@@ -250,7 +292,7 @@ namespace EcoSystem {
 				float brushSizeSqr = Mathf.Pow(brushSizeProp.floatValue, 2f);
 				float brushHardCenterSqr = Mathf.Pow(brushHardCenterProp.floatValue, 2f);
 				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
-					pair.Key.height += Mathf.Clamp01(1 - (pair.Value - brushSizeSqr * brushHardCenterSqr) / (brushSizeSqr - brushSizeSqr * brushHardCenterSqr)) * brushDensityProp.floatValue;
+					pair.Key.height += StrengthFromDistanceSqr(pair.Value, brushSizeSqr, brushHardCenterSqr);
 				}
 			}
 			TimingDebugger.Stop();
@@ -266,7 +308,7 @@ namespace EcoSystem {
 				float brushSizeSqr = Mathf.Pow(brushSizeProp.floatValue, 2f);
 				float brushHardCenterSqr = Mathf.Pow(brushHardCenterProp.floatValue, 2f);
 				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
-					pair.Key.height -= Mathf.Clamp01(1 - (pair.Value - brushSizeSqr * brushHardCenterSqr) / (brushSizeSqr - brushSizeSqr * brushHardCenterSqr)) * brushDensityProp.floatValue;
+					pair.Key.height -= StrengthFromDistanceSqr(pair.Value, brushSizeSqr, brushHardCenterSqr);
 				}
 			}
 			TimingDebugger.Stop();
@@ -283,7 +325,7 @@ namespace EcoSystem {
 				float brushSizeSqr = Mathf.Pow(brushSizeProp.floatValue, 2f);
 				float brushHardCenterSqr = Mathf.Pow(brushHardCenterProp.floatValue, 2f);
 				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
-					strength = Mathf.Clamp01(1 - (pair.Value - brushSizeSqr * brushHardCenterSqr) / (brushSizeSqr - brushSizeSqr * brushHardCenterSqr));
+					strength = StrengthFromDistanceSqr(pair.Value, brushSizeSqr, brushHardCenterSqr);
 					pair.Key.height = flattenHeightProp.floatValue + (pair.Key.height - flattenHeightProp.floatValue) * (1 - strength); // TODO use height of vertex before brush to avoid incremental change
 				}
 			}
@@ -318,6 +360,21 @@ namespace EcoSystem {
 				}
 				height /= count;
 				pair.Value.height = height;
+			}
+		}
+
+		private void VertexPaintBrush(Dictionary<VirtualVertex, float> vertices) {
+			if (brushHardCenterProp.floatValue == 1f) {
+				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
+					pair.Key.color = Color.Lerp(pair.Key.color, brushPaintColorProp.colorValue, brushDensityProp.floatValue);
+				}
+			} else {
+				float brushSizeSqr = Mathf.Pow(brushSizeProp.floatValue, 2f);
+				float brushHardCenterSqr = Mathf.Pow(brushHardCenterProp.floatValue, 2f);
+				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
+					//pair.Key.color = new Color(Mathf.Max(StrengthFromDistanceSqr(pair.Value, brushSizeSqr, brushHardCenterSqr), pair.Key.color.r), 0f, 0f);
+					pair.Key.color = Color.Lerp(pair.Key.color, brushPaintColorProp.colorValue, StrengthFromDistanceSqr(pair.Value, brushSizeSqr, brushHardCenterSqr) * brushDensityProp.floatValue * .25f);
+				}
 			}
 		}
 #endregion
