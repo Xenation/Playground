@@ -208,7 +208,9 @@ namespace EcoSystem {
 				}
 			}
 			VirtualVertex pointed = terrain.virtualMesh.GetVertexAtWorldPos(brushCenter);
-			Handles.Label(pointed.vertex, pointed.ToString(), vertexDebugStyle);
+			if (pointed != null) {
+				Handles.Label(pointed.vertex, pointed.ToString(), vertexDebugStyle);
+			}
 		}
 #endregion
 

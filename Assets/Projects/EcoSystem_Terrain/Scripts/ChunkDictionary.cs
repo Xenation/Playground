@@ -24,7 +24,8 @@ namespace EcoSystem {
 			Clear();
 
 			if (keys.Count != values.Count) {
-				throw new Exception("There are " + keys.Count + " keys and " + values.Count + " after deserialization. Make sure that both key and value types are serializable.");
+				Debug.LogWarning("There are " + keys.Count + " keys and " + values.Count + " after deserialization. Make sure that both key and value types are serializable.");
+				//throw new Exception("There are " + keys.Count + " keys and " + values.Count + " after deserialization. Make sure that both key and value types are serializable.");
 			}
 
 			for (int i = 0; i < keys.Count; i++) {

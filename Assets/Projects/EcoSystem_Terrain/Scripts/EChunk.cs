@@ -51,6 +51,7 @@ namespace EcoSystem {
 
 		public void Init(ChunkData data) {
 			this.data = data;
+			cachedPos = data.pos;
 			meshRenderer = GetComponent<MeshRenderer>();
 			filter = GetComponent<MeshFilter>();
 			DestroyImmediate(filter.sharedMesh);

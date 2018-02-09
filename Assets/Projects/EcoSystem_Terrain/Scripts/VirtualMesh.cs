@@ -94,17 +94,17 @@ namespace EcoSystem {
 			worldPos += new Vector3(quadSize.x / 2f, 0f, quadSize.y / 2f);
 			Vector2i quadPos = new Vector2i((int) (worldPos.x / quadSize.x), (int) (worldPos.z / quadSize.y));
 			TimingDebugger.Stop();
-			if (quadPos.x < 0 || quadPos.y < 0 || quadPos.x > terrain.actualQuads * terrain.chunksCountX || quadPos.y > terrain.actualQuads * terrain.chunksCountZ) return null;
+			if (!terrain.isGenerated || quadPos.x < 0 || quadPos.y < 0 || quadPos.x > terrain.actualQuads * terrain.chunksCountX || quadPos.y > terrain.actualQuads * terrain.chunksCountZ) return null;
 			return GetVertexAtVertPos(quadPos);
 		}
 
 		public VirtualVertex GetVertexAt(Vector2i vertPos) {
-			if (vertPos.x < 0 || vertPos.x > terrain.actualQuads * terrain.chunksCountX || vertPos.y < 0 || vertPos.y > terrain.actualQuads * terrain.chunksCountZ) return null;
+			if (!terrain.isGenerated || vertPos.x < 0 || vertPos.x > terrain.actualQuads * terrain.chunksCountX || vertPos.y < 0 || vertPos.y > terrain.actualQuads * terrain.chunksCountZ) return null;
 			return GetVertexAtVertPos(vertPos);
 		}
 
 		private VirtualVertex GetVertexAtVertPos(Vector2i pos) {
-			return GetVertexAtVertPos(pos.x, pos.y);
+			return virtualVertices[pos.y * (terrain.chunksCountX * terrain.actualQuads + 1) + pos.x];
 		}
 
 		private VirtualVertex GetVertexAtVertPos(int x, int z) {
@@ -132,12 +132,16 @@ namespace EcoSystem {
 		}
 
 		public void Refetch() {
+			Refetch(terrain.chunksCountX, terrain.chunksCountZ, terrain.chunkSize);
+		}
+
+		public void Refetch(int chunkCountX, int chunkCountZ, Vector2 chunkSize) {
 			if (terrain.data.chunks.Count == 0) return;
 			TimingDebugger.Start("Virtual Refetch");
 			indicesPerChunk.Clear();
-			virtualVertices = new VirtualVertex[(terrain.chunksCountX * terrain.actualQuads + 1) * (terrain.chunksCountZ * terrain.actualQuads + 1)];
+			virtualVertices = new VirtualVertex[(chunkCountX * terrain.actualQuads + 1) * (chunkCountZ * terrain.actualQuads + 1)];
 			foreach (ChunkData chk in terrain.data.chunks.Values) {
-				indicesPerChunk.Add(chk.pos, chk.mesh.GetVirtualVertices(ref virtualVertices, terrain.chunksCountX * terrain.actualQuads + 1, chk.pos, terrain.chunkSize));
+				indicesPerChunk.Add(chk.pos, chk.mesh.GetVirtualVertices(ref virtualVertices, chunkCountX * terrain.actualQuads + 1, chk.pos, chunkSize));
 			}
 			int nullCount = 0;
 			foreach (VirtualVertex vert in virtualVertices) {

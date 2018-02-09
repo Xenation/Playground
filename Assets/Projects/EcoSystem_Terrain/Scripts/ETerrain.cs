@@ -22,6 +22,8 @@ namespace EcoSystem {
 		[System.NonSerialized]
 		public int actualQuads = 32;
 
+		public bool isGenerated { get; private set; }
+
 		private Dictionary<Vector2i, EChunk> chunks = new Dictionary<Vector2i, EChunk>();
 		public int ActualChunkCount {
 			get {
@@ -51,6 +53,7 @@ namespace EcoSystem {
 		#endregion
 		#endregion
 
+		#region Initialization
 		public void LoadData() {
 			if (data == null) return;
 			TimingDebugger.Start("Load Data");
@@ -58,7 +61,12 @@ namespace EcoSystem {
 			chunks.Clear();
 			EChunk[] existing = transform.GetComponentsInChildren<EChunk>();
 			for (int i = 0; i < existing.Length; i++) {
-				chunks.Add(existing[i].cachedPos, existing[i]);
+				ChunkData inData;
+				if (data.chunks.TryGetValue(existing[i].cachedPos, out inData)) {
+					chunks.Add(existing[i].cachedPos, existing[i]);
+				} else {
+					DestroyImmediate(existing[i].gameObject);
+				}
 			}
 			// Load from data
 			foreach (ChunkData chkData in data.chunks.Values) {
@@ -66,10 +74,17 @@ namespace EcoSystem {
 				if (chunks.TryGetValue(chkData.pos, out toLoad)) {
 					toLoad.Init(chkData);
 				} else {
-					chunks.Add(chkData.pos, EChunk.CreateChunk(transform, data, chkData));
+					EChunk created = EChunk.CreateChunk(transform, data, chkData);
+					chunks.Add(chkData.pos, created);
+					created.SetMaterial(terrainMaterial);
 				}
 			}
 			virtualMesh = new VirtualMesh(this);
+			if (data.chunks.Count != 0) { // TODO unsafe way to check if something was generated during load
+				isGenerated = true;
+			} else {
+				isGenerated = false;
+			}
 			TimingDebugger.Stop();
 		}
 
@@ -82,9 +97,12 @@ namespace EcoSystem {
 				}
 			}
 			virtualMesh = new VirtualMesh(this);
+			isGenerated = true;
 			TimingDebugger.Stop();
 		}
+		#endregion
 
+		#region ChunkGridModification
 		private void AddChunkAt(Vector2i pos) {
 			EChunk chk = EChunk.CreateChunk(transform, data, pos, chunkSize, actualQuads);
 			chunks.Add(pos, chk);
@@ -108,40 +126,9 @@ namespace EcoSystem {
 			}
 		}
 
-		public void Clear() {
-			TimingDebugger.Start("Clear");
-			foreach (EChunk chk in chunks.Values) {
-				chk.UnbindData(data);
-				DestroyImmediate(chk.gameObject);
-			}
-			chunks.Clear();
-			TimingDebugger.Stop();
-		}
-
-		public void UpdateTerrainMaterial() {
-			foreach (EChunk chk in chunks.Values) {
-				chk.SetMaterial(terrainMaterial);
-			}
-		}
-
-		public void Resize(Vector2 nTerrainSize, int nCountX, int nCountZ) {
-			ResizeChunkGrid(nCountX, nCountZ);
-			ModifyChunkSize(new Vector2(nTerrainSize.x / nCountX, nTerrainSize.y / nCountZ));
-			virtualMesh.Refetch();
-		}
-
-		public void ModifyChunkSize(Vector2 nSize) {
-			TimingDebugger.Start("Modify Chunk Size");
-			foreach (EChunk chk in chunks.Values) {
-				chk.Resize(nSize);
-				chk.RebuildCollider();
-			}
-			TimingDebugger.Stop();
-		}
-
 		public void ResizeChunkGrid(int nCountX, int nCountZ) {
 			TimingDebugger.Start("Resize Chunk Grid");
-			if (nCountX == chunksCountX && nCountZ == chunksCountZ) return;
+			if (!isGenerated || (nCountX == chunksCountX && nCountZ == chunksCountZ)) return;
 			// TODO optimise added and then removed corner when downsizing in one dimension and upsizing in the other
 			HashSet<Vector2i> removePositions = new HashSet<Vector2i>();
 			HashSet<Vector2i> addPositions = new HashSet<Vector2i>();
@@ -175,6 +162,41 @@ namespace EcoSystem {
 			AddChunks(addPositions);
 			TimingDebugger.Stop();
 		}
+
+		public void Clear() {
+			TimingDebugger.Start("Clear");
+			foreach (EChunk chk in chunks.Values) {
+				chk.UnbindData(data);
+				DestroyImmediate(chk.gameObject);
+			}
+			chunks.Clear();
+			isGenerated = false;
+			TimingDebugger.Stop();
+		}
+		#endregion
+
+		#region Updating
+		public void UpdateTerrainMaterial() {
+			foreach (EChunk chk in chunks.Values) {
+				chk.SetMaterial(terrainMaterial);
+			}
+		}
+
+		public void Resize(Vector2 nTerrainSize, int nCountX, int nCountZ) {
+			Vector2 nChunkSize = new Vector2(nTerrainSize.x / nCountX, nTerrainSize.y / nCountZ);
+			ResizeChunkGrid(nCountX, nCountZ);
+			ModifyChunkSize(nChunkSize);
+			virtualMesh.Refetch(nCountX, nCountZ, nChunkSize);
+		}
+
+		public void ModifyChunkSize(Vector2 nSize) {
+			TimingDebugger.Start("Modify Chunk Size");
+			foreach (EChunk chk in chunks.Values) {
+				chk.Resize(nSize);
+				chk.RebuildCollider();
+			}
+			TimingDebugger.Stop();
+		}
 		
 		public void SetChunkResolution(int quads) {
 			TimingDebugger.Start("SetResolution");
@@ -197,7 +219,9 @@ namespace EcoSystem {
 			}
 			TimingDebugger.Stop();
 		}
+		#endregion
 
+		#region Utility
 		private bool IsPowerOfTwo(int x) {
 			return (x != 0) && ((x & (x - 1)) == 0);
 		}
@@ -238,6 +262,7 @@ namespace EcoSystem {
 			}
 			return touching;
 		}
+		#endregion
 
 	}
 }
