@@ -33,6 +33,9 @@ namespace EcoSystem {
 		[SerializeField]
 		public Vector3[] normals;
 
+		public bool isModified = false;
+		public bool isNormalModified = false;
+
 	}
 
 	[Serializable]
@@ -71,21 +74,26 @@ namespace EcoSystem {
 		}
 
 		public void ApplyModifications() {
+			if (!data.isModified) return;
 			mesh.Clear();
 			mesh.vertices = data.vertices;
 			mesh.colors = data.colors;
 			mesh.SetIndices(data.indices, MeshTopology.Triangles, 0);
 			mesh.RecalculateNormals();
 			data.normals = mesh.normals;
+			data.isModified = false;
 		}
 
 		public void ApplyNormalsModifications() {
+			if (!data.isNormalModified) return;
 			mesh.normals = data.normals;
 			mesh.UploadMeshData(false);
+			data.isNormalModified = false;
 		}
 
 		public void RecreateMesh() {
 			mesh = new Mesh();
+			data.isModified = true;
 			ApplyModifications();
 		}
 

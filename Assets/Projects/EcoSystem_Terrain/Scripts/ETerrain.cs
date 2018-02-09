@@ -60,6 +60,10 @@ namespace EcoSystem {
 		#endregion
 
 		#region Initialization
+		private void OnEnable() {
+			LoadData();
+		}
+
 		public void LoadData() {
 			if (data == null) return;
 			TimingDebugger.Start("Load Data");

@@ -5,14 +5,10 @@ using Xenon;
 namespace EcoSystem {
 	public class VirtualMesh {
 
-		//private Dictionary<Vector2i, ChunkData> data = new Dictionary<Vector2i, ChunkData>();
-		//private Dictionary<ChunkMesh, List<VirtualVertex>> virtualVertices = new Dictionary<ChunkMesh, List<VirtualVertex>>();
-
 		private Dictionary<Vector2i, int[]> indicesPerChunk = new Dictionary<Vector2i, int[]>();
 		private VirtualVertex[] virtualVertices;
 
-		//private VirtualVertex[] vertices;
-		//private int[] indices;
+		private List<Vector2i> modifiedChunks = new List<Vector2i>();
 
 		private ETerrain terrain;
 
@@ -23,7 +19,7 @@ namespace EcoSystem {
 
 		private Dictionary<VirtualVertex, float> vertsByDistance = new Dictionary<VirtualVertex, float>();
 		public Dictionary<VirtualVertex, float> GetVerticesByDistanceIn2DRange(Vector2 center, float range) {
-			TimingDebugger.Start("GetIn2DRange");
+			TimingDebugger.Start("GetByDistanceIn2DRange");
 			// TODO Optimize
 			vertsByDistance.Clear();
 			float rangeSqr = Mathf.Pow(range, 2f);
@@ -116,11 +112,10 @@ namespace EcoSystem {
 			foreach (ChunkData chkData in terrain.data.chunks.Values) {
 				chkData.mesh.ApplyModifications();
 			}
-			FixEdgeSeams();
 			TimingDebugger.Stop();
 		}
 
-		private void FixEdgeSeams() {
+		public void FixEdgeSeams() {
 			TimingDebugger.Start("Fix Edge Seams");
 			for (int i = 0; i < virtualVertices.Length; i++) { // TODO avoid re-averaging edge and corner vertices more than once
 				if (virtualVertices[i] != null) virtualVertices[i].AverageNormals();

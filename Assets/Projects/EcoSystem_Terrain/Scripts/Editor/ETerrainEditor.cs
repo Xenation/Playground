@@ -271,6 +271,9 @@ namespace EcoSystem {
 					break;
 			}
 			terrain.virtualMesh.ApplyModifications();
+			if (selectedTool == Tool.RaiseLower || selectedTool == Tool.Flatten || selectedTool == Tool.Smooth) {
+				terrain.virtualMesh.FixEdgeSeams();
+			}
 			TimingDebugger.Stop();
 		}
 
@@ -364,6 +367,7 @@ namespace EcoSystem {
 		}
 
 		private void VertexPaintBrush(Dictionary<VirtualVertex, float> vertices) {
+			TimingDebugger.Start("VertexPaint");
 			if (brushHardCenterProp.floatValue == 1f) {
 				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
 					pair.Key.color = Color.Lerp(pair.Key.color, brushPaintColorProp.colorValue, brushDensityProp.floatValue);
@@ -376,6 +380,7 @@ namespace EcoSystem {
 					pair.Key.color = Color.Lerp(pair.Key.color, brushPaintColorProp.colorValue, StrengthFromDistanceSqr(pair.Value, brushSizeSqr, brushHardCenterSqr) * brushDensityProp.floatValue * .25f);
 				}
 			}
+			TimingDebugger.Stop();
 		}
 #endregion
 
