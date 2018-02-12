@@ -59,6 +59,7 @@ namespace EcoSystem {
 			int maxVertX = Mathf.Min((int) (maxX / quadSize.x), terrain.actualQuads * terrain.chunksCountX);
 			int minVertZ = Mathf.Max((int) (minZ / quadSize.y) + 1, 0);
 			int maxVertZ = Mathf.Min((int) (maxZ / quadSize.y), terrain.actualQuads * terrain.chunksCountZ);
+			if (minVertX > maxVertX || minVertZ > maxVertZ) return new VirtualVertex[0];
 			VirtualVertex[] inRect = new VirtualVertex[(maxVertX - minVertX + 1) * (maxVertZ - minVertZ + 1)];
 			int index = 0;
 			for (int z = minVertZ; z <= maxVertZ; z++) {
@@ -110,7 +111,8 @@ namespace EcoSystem {
 		public void ApplyModifications() {
 			TimingDebugger.Start("Virtual Mesh Apply");
 			foreach (ChunkData chkData in terrain.data.chunks.Values) {
-				chkData.mesh.ApplyModifications();
+				chkData.mesh.ApplyVertexModifications();
+				chkData.mesh.ApplyColorModifications();
 			}
 			TimingDebugger.Stop();
 		}

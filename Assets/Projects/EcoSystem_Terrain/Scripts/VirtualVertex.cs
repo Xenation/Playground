@@ -20,7 +20,7 @@ namespace EcoSystem {
 			set {
 				for (int i = 0; i < meshesData.Length; i++) {
 					meshesData[i].vertices[indices[i]].y = value;
-					meshesData[i].isModified = true;
+					meshesData[i].isVertexModified = true;
 				}
 			}
 		}
@@ -42,7 +42,7 @@ namespace EcoSystem {
 			set {
 				for (int i = 0; i < meshesData.Length; i++) {
 					meshesData[i].colors[indices[i]] = value;
-					meshesData[i].isModified = true;
+					meshesData[i].isColorModified = true;
 				}
 			}
 		}
