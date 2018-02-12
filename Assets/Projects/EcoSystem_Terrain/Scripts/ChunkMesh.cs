@@ -115,11 +115,20 @@ namespace EcoSystem {
 			ResetRelativePositions();
 		}
 
-		public void ApplyVertexModifications() {
+		public void ApplyVertexIndexModifications() {
 			if (!data.isVertexModified) return;
 			mesh.Clear();
 			mesh.vertices = data.vertices;
+			mesh.colors = data.colors;
 			mesh.SetIndices(data.indices, MeshTopology.Triangles, 0);
+			mesh.RecalculateNormals();
+			data.normals = mesh.normals;
+			data.isVertexModified = false;
+		}
+
+		public void ApplyVertexModifications() {
+			if (!data.isVertexModified) return;
+			mesh.vertices = data.vertices;
 			mesh.RecalculateNormals();
 			data.normals = mesh.normals;
 			data.isVertexModified = false;
@@ -141,7 +150,7 @@ namespace EcoSystem {
 		public void RecreateMesh() {
 			mesh = new Mesh();
 			data.isVertexModified = true;
-			ApplyVertexModifications();
+			ApplyVertexIndexModifications();
 		}
 
 		public void GeneratePlane() {
@@ -161,7 +170,6 @@ namespace EcoSystem {
 		public void Resize(Vector3 nSize) {
 			for (int i = 0; i < data.vertices.Length; i++) {
 				data.vertices[i].x = data.relativePosition[i].x * nSize.x;
-				data.vertices[i].y = data.relativePosition[i].y * nSize.y;
 				data.vertices[i].z = data.relativePosition[i].z * nSize.z;
 			}
 			size = new Vector2(nSize.x, nSize.z);
@@ -184,7 +192,7 @@ namespace EcoSystem {
 			data.colors = nColors;
 			data.isVertexModified = true;
 			data.isColorModified = true;
-			ApplyVertexModifications();
+			ApplyVertexIndexModifications();
 			ApplyColorModifications();
 			quads = nQuads;
 			ResetRelativePositions();

@@ -386,7 +386,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   terrainMaterial: {fileID: 2100000, guid: 6486d0dd23d86a741bc1fcc7a1a406d1, type: 2}
-  chunksCountX: 2
+  chunksCountX: 4
   chunksCountZ: 4
   terrainSize: {x: 500, y: 500}
   desiredQuads: 32
@@ -414,7 +414,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 0
   brushUseCurve: 0
-  brushPaintColor: {r: 1, g: 0, b: 0, a: 1}
+  brushPaintColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!4 &1896944939
 Transform:
   m_ObjectHideFlags: 0
