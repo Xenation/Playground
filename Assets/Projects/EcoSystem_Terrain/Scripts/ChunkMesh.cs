@@ -101,6 +101,7 @@ namespace EcoSystem {
 
 		public ChunkMesh(Vector2 size, int quads) {
 			mesh = new Mesh();
+			mesh.MarkDynamic();
 			data = new MeshData();
 			this.size = size;
 			this.quads = quads;
@@ -149,6 +150,7 @@ namespace EcoSystem {
 
 		public void RecreateMesh() {
 			mesh = new Mesh();
+			mesh.MarkDynamic();
 			data.isVertexModified = true;
 			ApplyVertexIndexModifications();
 		}

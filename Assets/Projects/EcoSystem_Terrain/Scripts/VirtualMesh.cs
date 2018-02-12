@@ -5,18 +5,35 @@ using Xenon;
 namespace EcoSystem {
 	public class VirtualMesh {
 
+		#region Attributes
 		private Dictionary<Vector2i, int[]> indicesPerChunk = new Dictionary<Vector2i, int[]>();
 		private VirtualVertex[] virtualVertices;
+		public int VirtualVertexCount {
+			get {
+				return virtualVertices.Length;
+			}
+		}
 
 		private List<Vector2i> modifiedChunks = new List<Vector2i>();
 
 		private ETerrain terrain;
 
+		public delegate float UpdateHeatmap(Vector3 pos);
+		public UpdateHeatmap updateR;
+		public UpdateHeatmap updateG;
+		public UpdateHeatmap updateB;
+		public UpdateHeatmap updateA;
+		#endregion
+
+		#region Initialisation
 		public VirtualMesh(ETerrain terr) {
 			terrain = terr;
 			Refetch();
 		}
+		#endregion
 
+		#region Access
+		#region VirtualVertex
 		private Dictionary<VirtualVertex, float> vertsByDistance = new Dictionary<VirtualVertex, float>();
 		public Dictionary<VirtualVertex, float> GetVerticesByDistanceIn2DRange(Vector2 center, float range) {
 			TimingDebugger.Start("GetByDistanceIn2DRange");
@@ -108,6 +125,22 @@ namespace EcoSystem {
 		private VirtualVertex GetVertexAtVertPos(int x, int z) {
 			return virtualVertices[z * (terrain.chunksCountX * terrain.actualQuads + 1) + x];
 		}
+		#endregion
+		#endregion
+
+		#region Update/Modif
+		public void UpdateColorChannels() {
+			TimingDebugger.Start("Update Color Channels");
+			for (int i = 0; i < virtualVertices.Length; i++) {
+				virtualVertices[i].color = new Color(updateR(virtualVertices[i].vertex), updateG(virtualVertices[i].vertex), updateB(virtualVertices[i].vertex), updateA(virtualVertices[i].vertex));
+			}
+			TimingDebugger.Start("Apply Colors");
+			foreach (ChunkData chkData in terrain.data.chunks.Values) {
+				chkData.mesh.ApplyColorModifications();
+			}
+			TimingDebugger.Stop();
+			TimingDebugger.Stop();
+		}
 
 		public void ApplyModifications() {
 			TimingDebugger.Start("Virtual Mesh Apply");
@@ -148,6 +181,7 @@ namespace EcoSystem {
 			FixEdgeSeams();
 			TimingDebugger.Stop();
 		}
+		#endregion
 
 	}
 }

@@ -8,7 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: BasicTerrain
   m_Shader: {fileID: 4800000, guid: 5a4a3be103b5a9b4ba9137d084443dcb, type: 3}
-  m_ShaderKeywords: 
+  m_ShaderKeywords: _DISPLAYB_ON _DISPLAYG_ON _DISPLAYR_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -58,6 +58,10 @@ Material:
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
+    - _DisplayA: 0
+    - _DisplayB: 1
+    - _DisplayG: 1
+    - _DisplayR: 1
     - _DstBlend: 0
     - _Gloss: 0.662
     - _GlossMapScale: 1

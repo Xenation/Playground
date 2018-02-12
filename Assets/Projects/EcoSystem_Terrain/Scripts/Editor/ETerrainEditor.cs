@@ -16,6 +16,10 @@ namespace EcoSystem {
 			VertexPaint
 		}
 
+		private enum Channel : int {
+			R = 0, G = 1, B = 2, A = 3
+		}
+
 #region ATTRIBUTES
 		private ETerrain terrain;
 
@@ -41,6 +45,7 @@ namespace EcoSystem {
 		private SerializedProperty brushCurveProp;
 		private SerializedProperty brushUseCurveProp;
 		private SerializedProperty brushPaintColorProp;
+		private SerializedProperty brushPaintPerChannelProp;
 		private bool isPainting = false;
 		private bool isMouseOverTerrain = false;
 		private bool isClicking = false;
@@ -50,6 +55,11 @@ namespace EcoSystem {
 		private bool isFlattenTool { get { return selectedTool == Tool.Flatten; } }
 		private bool isSmoothTool { get { return selectedTool == Tool.Smooth; } }
 		private bool isVertexPaintTool { get { return selectedTool == Tool.VertexPaint; } }
+		private Channel selectedChannel = Channel.R;
+		private bool isChannelR { get { return selectedChannel == Channel.R; } }
+		private bool isChannelG { get { return selectedChannel == Channel.G; } }
+		private bool isChannelB { get { return selectedChannel == Channel.B; } }
+		private bool isChannelA { get { return selectedChannel == Channel.A; } }
 
 		private GUIStyle vertexDebugStyle;
 		#endregion
@@ -62,7 +72,7 @@ namespace EcoSystem {
 			InitProperties();
 			toolHash = GetHashCode();
 			vertexDebugStyle = new GUIStyle();
-			vertexDebugStyle.normal.textColor = Color.blue;
+			vertexDebugStyle.normal.textColor = Color.magenta;
 		}
 
 		private void InitProperties() {
@@ -81,6 +91,7 @@ namespace EcoSystem {
 			brushCurveProp = serializedObject.FindProperty("brushCurve");
 			brushUseCurveProp = serializedObject.FindProperty("brushUseCurve");
 			brushPaintColorProp = serializedObject.FindProperty("brushPaintColor");
+			brushPaintPerChannelProp = serializedObject.FindProperty("brushPaintPerChannel");
 		}
 #endregion
 
@@ -128,8 +139,8 @@ namespace EcoSystem {
 				terrain.Clear();
 				EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
 			}
-
-			EditorGUILayout.LabelField("Chunks Count: " + terrain.ActualChunkCount);
+			
+			EditorGUILayout.HelpBox("Chunk Count: " + terrain.ActualChunkCount + "\nVirtual Vertex Count: " + terrain.virtualMesh.VirtualVertexCount, MessageType.Info);
 			
 
 			// TOOLS
@@ -168,7 +179,34 @@ namespace EcoSystem {
 				EditorGUILayout.PropertyField(brushDensityProp);
 			}
 			if (isVertexPaintTool) {
-				EditorGUILayout.PropertyField(brushPaintColorProp);
+				EditorGUILayout.BeginHorizontal();
+				EditorGUILayout.PrefixLabel("Paint Mode");
+				if (GUILayout.Toggle(!brushPaintPerChannelProp.boolValue, "Color", EditorStyles.miniButtonLeft)) {
+					brushPaintPerChannelProp.boolValue = false;
+				}
+				if (GUILayout.Toggle(brushPaintPerChannelProp.boolValue, "Channel", EditorStyles.miniButtonRight)) {
+					brushPaintPerChannelProp.boolValue = true;
+				}
+				EditorGUILayout.EndHorizontal();
+				if (brushPaintPerChannelProp.boolValue) {
+					EditorGUILayout.BeginHorizontal();
+					EditorGUILayout.PrefixLabel("Channel");
+					if (GUILayout.Toggle(isChannelR, "R", EditorStyles.miniButtonLeft)) {
+						selectedChannel = Channel.R;
+					}
+					if (GUILayout.Toggle(isChannelG, "G", EditorStyles.miniButtonMid)) {
+						selectedChannel = Channel.G;
+					}
+					if (GUILayout.Toggle(isChannelB, "B", EditorStyles.miniButtonMid)) {
+						selectedChannel = Channel.B;
+					}
+					if (GUILayout.Toggle(isChannelA, "A", EditorStyles.miniButtonRight)) {
+						selectedChannel = Channel.A;
+					}
+					EditorGUILayout.EndHorizontal();
+				} else {
+					EditorGUILayout.PropertyField(brushPaintColorProp);
+				}
 			}
 			switch (selectedTool) {
 				case Tool.Flatten:
@@ -237,9 +275,19 @@ namespace EcoSystem {
 					terrain.RebuildCollisions();
 				}
 			}
-			VirtualVertex pointed = terrain.virtualMesh.GetVertexAtWorldPos(brushCenter);
-			if (pointed != null) {
-				Handles.Label(pointed.vertex + terrain.transform.position, pointed.ToString(), vertexDebugStyle);
+
+			if (shift) {
+				VirtualVertex pointed = terrain.virtualMesh.GetVertexAtWorldPos(brushCenter);
+				if (pointed != null) {
+					Handles.Label(pointed.vertex + terrain.transform.position, pointed.ToString(), vertexDebugStyle);
+				}
+			} else {
+				string leftDisp = "Height: " + TerrainManager.I.GetHeightAt(brushCenter) + "\n" +
+					"Humidity: " + TerrainManager.I.GetHumidityAt(brushCenter) + "\n" +
+					"Temperature: " + TerrainManager.I.GetTemperatureAt(brushCenter);
+				GUIStyle style = new GUIStyle(vertexDebugStyle);
+				style.alignment = TextAnchor.MiddleLeft;
+				Handles.Label(brushCenter, leftDisp, style);
 			}
 		}
 #endregion
@@ -267,7 +315,11 @@ namespace EcoSystem {
 					break;
 				case Tool.VertexPaint:
 					inRangeByDist = terrain.virtualMesh.GetVerticesByDistanceIn2DRange(new Vector2(brushCenter.x, brushCenter.z), brushSizeProp.floatValue);
-					VertexPaintBrush(inRangeByDist);
+					if (brushPaintPerChannelProp.boolValue) {
+						VertexPaintBrush(inRangeByDist, selectedChannel);
+					} else {
+						VertexPaintBrush(inRangeByDist, brushPaintColorProp.colorValue);
+					}
 					break;
 			}
 			terrain.virtualMesh.ApplyModifications();
@@ -366,18 +418,45 @@ namespace EcoSystem {
 			}
 		}
 
-		private void VertexPaintBrush(Dictionary<VirtualVertex, float> vertices) {
-			TimingDebugger.Start("VertexPaint");
+		private void VertexPaintBrush(Dictionary<VirtualVertex, float> vertices, Color color) {
+			TimingDebugger.Start("VertexPaint Color");
 			if (brushHardCenterProp.floatValue == 1f) {
 				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
-					pair.Key.color = Color.Lerp(pair.Key.color, brushPaintColorProp.colorValue, brushDensityProp.floatValue);
+					pair.Key.color = Color.Lerp(pair.Key.color, color, brushDensityProp.floatValue * .25f);
 				}
 			} else {
 				float brushSizeSqr = Mathf.Pow(brushSizeProp.floatValue, 2f);
 				float brushHardCenterSqr = Mathf.Pow(brushHardCenterProp.floatValue, 2f);
 				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
 					//pair.Key.color = new Color(Mathf.Max(StrengthFromDistanceSqr(pair.Value, brushSizeSqr, brushHardCenterSqr), pair.Key.color.r), 0f, 0f);
-					pair.Key.color = Color.Lerp(pair.Key.color, brushPaintColorProp.colorValue, StrengthFromDistanceSqr(pair.Value, brushSizeSqr, brushHardCenterSqr) * brushDensityProp.floatValue * .25f);
+					pair.Key.color = Color.Lerp(pair.Key.color, color, StrengthFromDistanceSqr(pair.Value, brushSizeSqr, brushHardCenterSqr) * brushDensityProp.floatValue * .25f);
+				}
+			}
+			TimingDebugger.Stop();
+		}
+
+		private void VertexPaintBrush(Dictionary<VirtualVertex, float> vertices, Channel cha) {
+			Color color;
+			float targetVal;
+			if (shift) {
+				targetVal = 0f;
+			} else {
+				targetVal = 1f;
+			}
+			TimingDebugger.Start("VertexPaint Channel");
+			if (brushHardCenterProp.floatValue == 1f) {
+				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
+					color = pair.Key.color;
+					color[(int) cha] = Mathf.Lerp(color[(int) cha], targetVal, brushDensityProp.floatValue * .25f);
+					pair.Key.color = color;
+				}
+			} else {
+				float brushSizeSqr = Mathf.Pow(brushSizeProp.floatValue, 2f);
+				float brushHardCenterSqr = Mathf.Pow(brushHardCenterProp.floatValue, 2f);
+				foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
+					color = pair.Key.color;
+					color[(int) cha] = Mathf.Lerp(color[(int) cha], targetVal, StrengthFromDistanceSqr(pair.Value, brushSizeSqr, brushHardCenterSqr) * brushDensityProp.floatValue * .25f);
+					pair.Key.color = color;
 				}
 			}
 			TimingDebugger.Stop();

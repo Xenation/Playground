@@ -55,6 +55,8 @@ namespace EcoSystem {
 		private bool brushUseCurve;
 		[SerializeField]
 		private Color brushPaintColor;
+		[SerializeField]
+		private bool brushPaintPerChannel;
 #endif
 		#endregion
 		#endregion
@@ -271,6 +273,18 @@ namespace EcoSystem {
 				}
 			}
 			return touching;
+		}
+
+		public float GetHeightAt(Vector3 worldPos) {
+			worldPos -= transform.position; // to local (unsafe)
+			if (worldPos.x < 0 || worldPos.z < 0) return -1000f;
+			Vector2i chkPos = new Vector2i((int) (worldPos.x / chunkSize.x), (int) (worldPos.z / chunkSize.y));
+			ChunkData chk;
+			if (data.chunks.TryGetValue(chkPos, out chk)) {
+				return chk.mesh.GetHeightAt(new Vector2(worldPos.x - chkPos.x * chunkSize.x, worldPos.z - chkPos.y * chunkSize.y), chunkSize / actualQuads);
+			} else {
+				return -1000f;
+			}
 		}
 		#endregion
 

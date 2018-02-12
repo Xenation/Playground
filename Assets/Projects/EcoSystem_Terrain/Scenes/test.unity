@@ -352,7 +352,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1262869476}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 72.8, y: 1, z: 32.7}
+  m_LocalPosition: {x: 105, y: 1, z: 57}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -367,6 +367,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1896944939}
   - component: {fileID: 1896944938}
+  - component: {fileID: 1896944940}
   m_Layer: 0
   m_Name: Terrain
   m_TagString: Untagged
@@ -386,12 +387,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   terrainMaterial: {fileID: 2100000, guid: 6486d0dd23d86a741bc1fcc7a1a406d1, type: 2}
-  chunksCountX: 4
-  chunksCountZ: 4
-  terrainSize: {x: 500, y: 500}
+  chunksCountX: 8
+  chunksCountZ: 8
+  terrainSize: {x: 2000, y: 2000}
   desiredQuads: 32
   data: {fileID: 11400000, guid: 4dce374f221555343b2a37dc805874b8, type: 2}
-  brushSize: 50
+  brushSize: 500
   brushHardCenter: 0
   brushDensity: 1
   flattenHeight: 0
@@ -415,6 +416,7 @@ MonoBehaviour:
     m_RotationOrder: 0
   brushUseCurve: 0
   brushPaintColor: {r: 1, g: 1, b: 1, a: 1}
+  brushPaintPerChannel: 1
 --- !u!4 &1896944939
 Transform:
   m_ObjectHideFlags: 0
@@ -428,3 +430,14 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1896944940
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1896944937}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d77ea8973d54534791a0a74dc2d9de9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
