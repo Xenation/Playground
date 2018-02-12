@@ -26,7 +26,7 @@ namespace EcoSystem {
 			float existingDistance = 0f;
 			VirtualVertex[] inRect = GetVerticesInRect(center.x - range, center.x + range, center.y - range, center.y + range);
 			for (int i = 0; i < inRect.Length; i++) {
-				float distanceSqr = (new Vector2(inRect[i].vertex.x, inRect[i].vertex.z) - center).sqrMagnitude;
+				float distanceSqr = (new Vector2(inRect[i].vertex.x + terrain.transform.position.x, inRect[i].vertex.z + terrain.transform.position.z) - center).sqrMagnitude;
 				if (distanceSqr < rangeSqr) {
 					if (!vertsByDistance.TryGetValue(inRect[i], out existingDistance)) {
 						vertsByDistance.Add(inRect[i], distanceSqr);
@@ -45,7 +45,7 @@ namespace EcoSystem {
 			float rangeSqr = Mathf.Pow(range, 2f);
 			Dictionary<Vector2i, VirtualVertex> inRect = GetVerticesByPositionInRect(center.x - range, center.x + range, center.y - range, center.y + range);
 			foreach (KeyValuePair<Vector2i, VirtualVertex> pair in inRect) {
-				if ((new Vector2(pair.Value.vertex.x, pair.Value.vertex.z) - center).sqrMagnitude < rangeSqr) {
+				if ((new Vector2(pair.Value.vertex.x + terrain.transform.position.x, pair.Value.vertex.z + terrain.transform.position.z) - center).sqrMagnitude < rangeSqr) {
 					vertsByPosition.Add(pair.Key, pair.Value);
 				}
 			}
@@ -55,10 +55,10 @@ namespace EcoSystem {
 
 		public VirtualVertex[] GetVerticesInRect(float minX, float maxX, float minZ, float maxZ) {
 			Vector2 quadSize = terrain.chunkSize / terrain.actualQuads;
-			int minVertX = Mathf.Max((int) (minX / quadSize.x) + 1, 0);
-			int maxVertX = Mathf.Min((int) (maxX / quadSize.x), terrain.actualQuads * terrain.chunksCountX);
-			int minVertZ = Mathf.Max((int) (minZ / quadSize.y) + 1, 0);
-			int maxVertZ = Mathf.Min((int) (maxZ / quadSize.y), terrain.actualQuads * terrain.chunksCountZ);
+			int minVertX = Mathf.Max((int) ((minX - terrain.transform.position.x) / quadSize.x) + 1, 0);
+			int maxVertX = Mathf.Min((int) ((maxX - terrain.transform.position.x) / quadSize.x), terrain.actualQuads * terrain.chunksCountX);
+			int minVertZ = Mathf.Max((int) ((minZ - terrain.transform.position.z) / quadSize.y) + 1, 0);
+			int maxVertZ = Mathf.Min((int) ((maxZ - terrain.transform.position.z) / quadSize.y), terrain.actualQuads * terrain.chunksCountZ);
 			if (minVertX > maxVertX || minVertZ > maxVertZ) return new VirtualVertex[0];
 			VirtualVertex[] inRect = new VirtualVertex[(maxVertX - minVertX + 1) * (maxVertZ - minVertZ + 1)];
 			int index = 0;
@@ -72,10 +72,10 @@ namespace EcoSystem {
 
 		public Dictionary<Vector2i, VirtualVertex> GetVerticesByPositionInRect(float minX, float maxX, float minZ, float maxZ) {
 			Vector2 quadSize = terrain.chunkSize / terrain.actualQuads;
-			int minVertX = Mathf.Max((int) (minX / quadSize.x) + 1, 0);
-			int maxVertX = Mathf.Min((int) (maxX / quadSize.x), terrain.actualQuads * terrain.chunksCountX);
-			int minVertZ = Mathf.Max((int) (minZ / quadSize.y) + 1, 0);
-			int maxVertZ = Mathf.Min((int) (maxZ / quadSize.y), terrain.actualQuads * terrain.chunksCountZ);
+			int minVertX = Mathf.Max((int) ((minX - terrain.transform.position.x) / quadSize.x) + 1, 0);
+			int maxVertX = Mathf.Min((int) ((maxX - terrain.transform.position.x) / quadSize.x), terrain.actualQuads * terrain.chunksCountX);
+			int minVertZ = Mathf.Max((int) ((minZ - terrain.transform.position.z) / quadSize.y) + 1, 0);
+			int maxVertZ = Mathf.Min((int) ((maxZ - terrain.transform.position.z) / quadSize.y), terrain.actualQuads * terrain.chunksCountZ);
 			Dictionary<Vector2i, VirtualVertex> inRect = new Dictionary<Vector2i, VirtualVertex>();
 			for (int z = minVertZ; z <= maxVertZ; z++) {
 				for (int x = minVertX; x <= maxVertX; x++) {
@@ -88,6 +88,7 @@ namespace EcoSystem {
 		public VirtualVertex GetVertexAtWorldPos(Vector3 worldPos) { // TODO take in account terrain origin offset
 			TimingDebugger.Start("GetVertexAt");
 			Vector2 quadSize = terrain.chunkSize / terrain.actualQuads;
+			worldPos = worldPos - terrain.transform.position; // to local
 			worldPos += new Vector3(quadSize.x / 2f, 0f, quadSize.y / 2f);
 			Vector2i quadPos = new Vector2i((int) (worldPos.x / quadSize.x), (int) (worldPos.z / quadSize.y));
 			TimingDebugger.Stop();
