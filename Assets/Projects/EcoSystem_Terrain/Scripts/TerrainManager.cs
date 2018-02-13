@@ -15,7 +15,8 @@ namespace EcoSystem {
 				return _terrain;
 			}
 		}
-		
+
+		#region Delegates
 		public VirtualMesh.UpdateHeatmap updateHumidity {
 			get {
 				return terrain.virtualMesh.updateB;
@@ -32,10 +33,32 @@ namespace EcoSystem {
 				terrain.virtualMesh.updateR = value;
 			}
 		}
+		public VirtualMesh.InitializeHeatmap initializeHumidity {
+			get {
+				return terrain.virtualMesh.initB;
+			}
+			set {
+				terrain.virtualMesh.initB = value;
+			}
+		}
+		public VirtualMesh.InitializeHeatmap initializeTemperature {
+			get {
+				return terrain.virtualMesh.initR;
+			}
+			set {
+				terrain.virtualMesh.initR = value;
+			}
+		}
+		#endregion
 
 		private void Start() {
 			updateTemperature = DummyUpdateTemperature;
 			updateHumidity = DummyUpdateHumidity;
+			initializeTemperature = DummyInitializeTemperature;
+			initializeHumidity = DummyInitializeHumidity;
+			terrain.virtualMesh.InitializeColorChannels();
+			terrain.virtualMesh.ApplyColorModifications();
+			//Debug.Log("TerrainManager Start");
 		}
 
 		private void Update() {
@@ -46,12 +69,20 @@ namespace EcoSystem {
 			terrain.virtualMesh.ApplyColorModifications();
 		}
 
-		private float DummyUpdateTemperature(Vector3 pos) {
+		private float DummyInitializeTemperature(Vector3 pos) {
 			return pos.y / 100f;
 		}
-		
-		private float DummyUpdateHumidity(Vector3 pos) {
+
+		private float DummyInitializeHumidity(Vector3 pos) {
 			return (50f - pos.y) / 30f;
+		}
+
+		private float DummyUpdateTemperature(Vector3 pos, float temperature) {
+			return temperature;
+		}
+		
+		private float DummyUpdateHumidity(Vector3 pos, float humidity) {
+			return humidity;
 		}
 
 		/// <summary>

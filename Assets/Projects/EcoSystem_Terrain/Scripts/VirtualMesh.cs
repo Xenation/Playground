@@ -19,7 +19,13 @@ namespace EcoSystem {
 
 		private ETerrain terrain;
 
-		public delegate float UpdateHeatmap(Vector3 pos);
+		public delegate float InitializeHeatmap(Vector3 pos);
+		public InitializeHeatmap initR;
+		public InitializeHeatmap initG;
+		public InitializeHeatmap initB;
+		public InitializeHeatmap initA;
+
+		public delegate float UpdateHeatmap(Vector3 pos, float val);
 		public UpdateHeatmap updateR;
 		public UpdateHeatmap updateG;
 		public UpdateHeatmap updateB;
@@ -129,7 +135,123 @@ namespace EcoSystem {
 		#endregion
 		#endregion
 
-		#region Update/Modif
+		#region Modification
+		#region Channels
+		public void InitializeColorChannels() {
+			TimingDebugger.Start("Initialize Color Channels");
+			// Very Unelegant but optimised
+			Vector3 pos;
+			if (initR == null) {
+				if (initG == null) {
+					if (initB == null) {
+						if (initA == null) {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								virtualVertices[i].color = new Color(0f, 0f, 0f, 0f);
+							}
+						} else {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								virtualVertices[i].color = new Color(0f, 0f, 0f, initA(pos));
+							}
+						}
+					} else {
+						if (initA == null) {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								virtualVertices[i].color = new Color(0f, 0f, initB(pos), 0f);
+							}
+						} else {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								virtualVertices[i].color = new Color(0f, 0f, initB(pos), initA(pos));
+							}
+						}
+					}
+				} else {
+					if (initB == null) {
+						if (initA == null) {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								virtualVertices[i].color = new Color(0f, initG(pos), 0f, 0f);
+							}
+						} else {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								virtualVertices[i].color = new Color(0f, initG(pos), 0f, initA(pos));
+							}
+						}
+					} else {
+						if (initA == null) {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								virtualVertices[i].color = new Color(0f, initG(pos), initB(pos), 0f);
+							}
+						} else {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								virtualVertices[i].color = new Color(0f, initG(pos), initB(pos), initA(pos));
+							}
+						}
+					}
+				}
+			} else {
+				if (initG == null) {
+					if (initB == null) {
+						if (initA == null) {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								virtualVertices[i].color = new Color(initR(pos), 0f, 0f, 0f);
+							}
+						} else {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								virtualVertices[i].color = new Color(initR(pos), 0f, 0f, initA(pos));
+							}
+						}
+					} else {
+						if (initA == null) {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								virtualVertices[i].color = new Color(initR(pos), 0f, initB(pos), 0f);
+							}
+						} else {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								virtualVertices[i].color = new Color(initR(pos), 0f, initB(pos), initA(pos));
+							}
+						}
+					}
+				} else {
+					if (initB == null) {
+						if (initA == null) {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								virtualVertices[i].color = new Color(initR(pos), initG(pos), 0f, 0f);
+							}
+						} else {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								virtualVertices[i].color = new Color(initR(pos), initG(pos), 0f, initA(pos));
+							}
+						}
+					} else {
+						if (initA == null) {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								virtualVertices[i].color = new Color(initR(pos), initG(pos), initB(pos));
+							}
+						} else {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								virtualVertices[i].color = new Color(initR(pos), initG(pos), initB(pos), initA(pos));
+							}
+						}
+					}
+				}
+			}
+			TimingDebugger.Stop();
+		}
+
 		public void UpdateColorChannels() {
 			TimingDebugger.Start("Update Color Channels");
 			// Very Unelegant but optimised
@@ -147,7 +269,7 @@ namespace EcoSystem {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(0f, 0f, 0f, col.a + (updateA(pos) - col.a) * dt);
+								virtualVertices[i].color = new Color(0f, 0f, 0f, col.a + (updateA(pos, col.a) - col.a) * dt);
 							}
 						}
 					} else {
@@ -155,13 +277,13 @@ namespace EcoSystem {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(0f, 0f, col.b + (updateB(pos) - col.b) * dt, 0f);
+								virtualVertices[i].color = new Color(0f, 0f, col.b + (updateB(pos, col.b) - col.b) * dt, 0f);
 							}
 						} else {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(0f, 0f, col.b + (updateB(pos) - col.b) * dt, col.a + (updateA(pos) - col.a) * dt);
+								virtualVertices[i].color = new Color(0f, 0f, col.b + (updateB(pos, col.b) - col.b) * dt, col.a + (updateA(pos, col.a) - col.a) * dt);
 							}
 						}
 					}
@@ -171,13 +293,13 @@ namespace EcoSystem {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(0f, col.g + (updateG(pos) - col.g) * dt, 0f, 0f);
+								virtualVertices[i].color = new Color(0f, col.g + (updateG(pos, col.g) - col.g) * dt, 0f, 0f);
 							}
 						} else {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(0f, col.g + (updateG(pos) - col.g) * dt, 0f, col.a + (updateA(pos) - col.a) * dt);
+								virtualVertices[i].color = new Color(0f, col.g + (updateG(pos, col.g) - col.g) * dt, 0f, col.a + (updateA(pos, col.a) - col.a) * dt);
 							}
 						}
 					} else {
@@ -185,13 +307,13 @@ namespace EcoSystem {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(0f, col.g + (updateG(pos) - col.g) * dt, col.b + (updateB(pos) - col.b) * dt, 0f);
+								virtualVertices[i].color = new Color(0f, col.g + (updateG(pos, col.g) - col.g) * dt, col.b + (updateB(pos, col.b) - col.b) * dt, 0f);
 							}
 						} else {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(0f, col.g + (updateG(pos) - col.g) * dt, col.b + (updateB(pos) - col.b) * dt, col.a + (updateA(pos) - col.a) * dt);
+								virtualVertices[i].color = new Color(0f, col.g + (updateG(pos, col.g) - col.g) * dt, col.b + (updateB(pos, col.b) - col.b) * dt, col.a + (updateA(pos, col.a) - col.a) * dt);
 							}
 						}
 					}
@@ -203,13 +325,13 @@ namespace EcoSystem {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(col.r + (updateR(pos) - col.r) * dt, 0f, 0f, 0f);
+								virtualVertices[i].color = new Color(col.r + (updateR(pos, col.r) - col.r) * dt, 0f, 0f, 0f);
 							}
 						} else {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(col.r + (updateR(pos) - col.r) * dt, 0f, 0f, col.a + (updateA(pos) - col.a) * dt);
+								virtualVertices[i].color = new Color(col.r + (updateR(pos, col.r) - col.r) * dt, 0f, 0f, col.a + (updateA(pos, col.a) - col.a) * dt);
 							}
 						}
 					} else {
@@ -217,13 +339,13 @@ namespace EcoSystem {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(col.r + (updateR(pos) - col.r) * dt, 0f, col.b + (updateB(pos) - col.b) * dt, 0f);
+								virtualVertices[i].color = new Color(col.r + (updateR(pos, col.r) - col.r) * dt, 0f, col.b + (updateB(pos, col.b) - col.b) * dt, 0f);
 							}
 						} else {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(col.r + (updateR(pos) - col.r) * dt, 0f, col.b + (updateB(pos) - col.b) * dt, col.a + (updateA(pos) - col.a) * dt);
+								virtualVertices[i].color = new Color(col.r + (updateR(pos, col.r) - col.r) * dt, 0f, col.b + (updateB(pos, col.b) - col.b) * dt, col.a + (updateA(pos, col.a) - col.a) * dt);
 							}
 						}
 					}
@@ -233,13 +355,13 @@ namespace EcoSystem {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(col.r + (updateR(pos) - col.r) * dt, col.g + (updateG(pos) - col.g) * dt, 0f, 0f);
+								virtualVertices[i].color = new Color(col.r + (updateR(pos, col.r) - col.r) * dt, col.g + (updateG(pos, col.g) - col.g) * dt, 0f, 0f);
 							}
 						} else {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(col.r + (updateR(pos) - col.r) * dt, col.g + (updateG(pos) - col.g) * dt, 0f, col.a + (updateA(pos) - col.a) * dt);
+								virtualVertices[i].color = new Color(col.r + (updateR(pos, col.r) - col.r) * dt, col.g + (updateG(pos, col.g) - col.g) * dt, 0f, col.a + (updateA(pos, col.a) - col.a) * dt);
 							}
 						}
 					} else {
@@ -247,28 +369,21 @@ namespace EcoSystem {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(col.r + (updateR(pos) - col.r) * dt, col.g + (updateG(pos) - col.g) * dt, col.b + (updateB(pos) - col.b) * dt);
+								virtualVertices[i].color = new Color(col.r + (updateR(pos, col.r) - col.r) * dt, col.g + (updateG(pos, col.g) - col.g) * dt, col.b + (updateB(pos, col.b) - col.b) * dt);
 							}
 						} else {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(col.r + (updateR(pos) - col.r) * dt, col.g + (updateG(pos) - col.g) * dt, col.b + (updateB(pos) - col.b) * dt, col.a + (updateA(pos) - col.a) * dt);
+								virtualVertices[i].color = new Color(col.r + (updateR(pos, col.r) - col.r) * dt, col.g + (updateG(pos, col.g) - col.g) * dt, col.b + (updateB(pos, col.b) - col.b) * dt, col.a + (updateA(pos, col.a) - col.a) * dt);
 							}
 						}
 					}
 				}
 			}
-			//for (int i = 0; i < virtualVertices.Length; i++) {
-			//	pos = virtualVertices[i].vertex;
-			//	//virtualVertices[i].color = new Color(col.r + (updateR(pos) - col.r) * dt, col.g + (updateG(pos) - col.g) * dt, col.b + (updateB(pos) - col.b) * dt, col.a + (updateA(pos) - col.a) * dt);
-			//	//virtualVertices[i].color = new Color(pos.y / 100f, 0f, (50f - pos.y) / 30f, 0f);
-			//	//virtualVertices[i].color = new Color(TerrainManager.UpdateChannelR(pos), 0f, TerrainManager.UpdateChannelB(pos), 0f);
-			//	//virtualVertices[i].color = new Color(col.r + (updateR(pos) - col.r) * dt, 0f, col.b + (updateB(pos) - col.b) * dt, 0f);
-			//	virtualVertices[i].color = new Color(pos.y / 100f, 0f, (50f - pos.y) / 30f, 0f);
-			//}
 			TimingDebugger.Stop();
 		}
+		#endregion
 
 		public void ApplyModifications() {
 			TimingDebugger.Start("Virtual Mesh Apply");

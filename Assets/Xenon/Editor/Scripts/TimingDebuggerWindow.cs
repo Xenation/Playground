@@ -13,8 +13,9 @@ namespace Xenon.Editor {
 		}
 
 		private void PlayModeChange() {
-			if (EditorApplication.isPlaying) {
+			if (EditorApplication.isPlaying) { // TODO executed after start -> can't see initialiazation timings
 				TimingDebugger.ClearAll();
+				//Debug.Log("Entering playmode: Timings Cleared");
 			}
 		}
 
