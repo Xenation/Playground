@@ -108,12 +108,10 @@ Shader "Shader Forge/basicTerrain" {
                 float3 specularColor = float3(_Specular,_Specular,_Specular);
                 float specularMonochrome;
                 float node_8941 = 0.0;
-                float3 node_8378 = float3(lerp( node_8941, i.vertexColor.r, _DisplayR ),lerp( node_8941, i.vertexColor.g, _DisplayG ),lerp( node_8941, i.vertexColor.b, _DisplayB ));
-                float2 node_3467 = float2(i.posWorld.r,i.posWorld.b);
-                float2 node_8549 = step(frac((node_3467/10.0)),0.5).rg;
-                float node_6121 = 2.0;
-                float node_9863 = (node_8549.r*node_8549.g*node_6121);
-                float3 diffuseColor = lerp( node_8378, ((i.vertexColor.a*node_8378)+((1.0 - i.vertexColor.a)*((node_8549.r+node_8549.g)-node_9863))), _DisplayA ); // Need this for specular when using metallic
+                float _DisplayR_var = lerp( node_8941, i.vertexColor.r, _DisplayR );
+                float3 node_8378 = float3(_DisplayR_var,lerp( node_8941, i.vertexColor.g, _DisplayG ),lerp( node_8941, i.vertexColor.b, _DisplayB ));
+                float2 node_8549 = step(frac((float2(i.posWorld.r,i.posWorld.b)/10.0)),0.5).rg;
+                float3 diffuseColor = lerp( node_8378, ((i.vertexColor.a*node_8378)+((1.0 - i.vertexColor.a)*((node_8549.r+node_8549.g)-(node_8549.r*node_8549.g*2.0)))), _DisplayA ); // Need this for specular when using metallic
                 diffuseColor = EnergyConservationBetweenDiffuseAndSpecular(diffuseColor, specularColor, specularMonochrome);
                 specularMonochrome = 1.0-specularMonochrome;
                 float NdotV = abs(dot( normalDirection, viewDirection ));
@@ -218,12 +216,10 @@ Shader "Shader Forge/basicTerrain" {
                 float3 specularColor = float3(_Specular,_Specular,_Specular);
                 float specularMonochrome;
                 float node_8941 = 0.0;
-                float3 node_8378 = float3(lerp( node_8941, i.vertexColor.r, _DisplayR ),lerp( node_8941, i.vertexColor.g, _DisplayG ),lerp( node_8941, i.vertexColor.b, _DisplayB ));
-                float2 node_3467 = float2(i.posWorld.r,i.posWorld.b);
-                float2 node_8549 = step(frac((node_3467/10.0)),0.5).rg;
-                float node_6121 = 2.0;
-                float node_9863 = (node_8549.r*node_8549.g*node_6121);
-                float3 diffuseColor = lerp( node_8378, ((i.vertexColor.a*node_8378)+((1.0 - i.vertexColor.a)*((node_8549.r+node_8549.g)-node_9863))), _DisplayA ); // Need this for specular when using metallic
+                float _DisplayR_var = lerp( node_8941, i.vertexColor.r, _DisplayR );
+                float3 node_8378 = float3(_DisplayR_var,lerp( node_8941, i.vertexColor.g, _DisplayG ),lerp( node_8941, i.vertexColor.b, _DisplayB ));
+                float2 node_8549 = step(frac((float2(i.posWorld.r,i.posWorld.b)/10.0)),0.5).rg;
+                float3 diffuseColor = lerp( node_8378, ((i.vertexColor.a*node_8378)+((1.0 - i.vertexColor.a)*((node_8549.r+node_8549.g)-(node_8549.r*node_8549.g*2.0)))), _DisplayA ); // Need this for specular when using metallic
                 diffuseColor = EnergyConservationBetweenDiffuseAndSpecular(diffuseColor, specularColor, specularMonochrome);
                 specularMonochrome = 1.0-specularMonochrome;
                 float NdotV = abs(dot( normalDirection, viewDirection ));

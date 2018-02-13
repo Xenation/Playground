@@ -257,7 +257,6 @@ namespace EcoSystem {
 			// Very Unelegant but optimised
 			Vector3 pos;
 			Color col;
-			float dt = Mathf.Clamp01(Time.deltaTime);
 			if (updateR == null) {
 				if (updateG == null) {
 					if (updateB == null) {
@@ -269,7 +268,7 @@ namespace EcoSystem {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(0f, 0f, 0f, col.a + (updateA(pos, col.a) - col.a) * dt);
+								virtualVertices[i].color = new Color(0f, 0f, 0f, updateA(pos, col.a));
 							}
 						}
 					} else {
@@ -277,13 +276,13 @@ namespace EcoSystem {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(0f, 0f, col.b + (updateB(pos, col.b) - col.b) * dt, 0f);
+								virtualVertices[i].color = new Color(0f, 0f, updateB(pos, col.b), 0f);
 							}
 						} else {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(0f, 0f, col.b + (updateB(pos, col.b) - col.b) * dt, col.a + (updateA(pos, col.a) - col.a) * dt);
+								virtualVertices[i].color = new Color(0f, 0f, updateB(pos, col.b), updateA(pos, col.a));
 							}
 						}
 					}
@@ -293,13 +292,13 @@ namespace EcoSystem {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(0f, col.g + (updateG(pos, col.g) - col.g) * dt, 0f, 0f);
+								virtualVertices[i].color = new Color(0f, updateG(pos, col.g), 0f, 0f);
 							}
 						} else {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(0f, col.g + (updateG(pos, col.g) - col.g) * dt, 0f, col.a + (updateA(pos, col.a) - col.a) * dt);
+								virtualVertices[i].color = new Color(0f, updateG(pos, col.g), 0f, updateA(pos, col.a));
 							}
 						}
 					} else {
@@ -307,13 +306,13 @@ namespace EcoSystem {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(0f, col.g + (updateG(pos, col.g) - col.g) * dt, col.b + (updateB(pos, col.b) - col.b) * dt, 0f);
+								virtualVertices[i].color = new Color(0f, updateG(pos, col.g), updateB(pos, col.b), 0f);
 							}
 						} else {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(0f, col.g + (updateG(pos, col.g) - col.g) * dt, col.b + (updateB(pos, col.b) - col.b) * dt, col.a + (updateA(pos, col.a) - col.a) * dt);
+								virtualVertices[i].color = new Color(0f, updateG(pos, col.g), updateB(pos, col.b), updateA(pos, col.a));
 							}
 						}
 					}
@@ -325,13 +324,13 @@ namespace EcoSystem {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(col.r + (updateR(pos, col.r) - col.r) * dt, 0f, 0f, 0f);
+								virtualVertices[i].color = new Color(updateR(pos, col.r), 0f, 0f, 0f);
 							}
 						} else {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(col.r + (updateR(pos, col.r) - col.r) * dt, 0f, 0f, col.a + (updateA(pos, col.a) - col.a) * dt);
+								virtualVertices[i].color = new Color(updateR(pos, col.r), 0f, 0f, updateA(pos, col.a));
 							}
 						}
 					} else {
@@ -339,13 +338,13 @@ namespace EcoSystem {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(col.r + (updateR(pos, col.r) - col.r) * dt, 0f, col.b + (updateB(pos, col.b) - col.b) * dt, 0f);
+								virtualVertices[i].color = new Color(updateR(pos, col.r), 0f, updateB(pos, col.b), 0f);
 							}
 						} else {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(col.r + (updateR(pos, col.r) - col.r) * dt, 0f, col.b + (updateB(pos, col.b) - col.b) * dt, col.a + (updateA(pos, col.a) - col.a) * dt);
+								virtualVertices[i].color = new Color(updateR(pos, col.r), 0f, updateB(pos, col.b), updateA(pos, col.a));
 							}
 						}
 					}
@@ -355,13 +354,13 @@ namespace EcoSystem {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(col.r + (updateR(pos, col.r) - col.r) * dt, col.g + (updateG(pos, col.g) - col.g) * dt, 0f, 0f);
+								virtualVertices[i].color = new Color(updateR(pos, col.r), updateG(pos, col.g), 0f, 0f);
 							}
 						} else {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(col.r + (updateR(pos, col.r) - col.r) * dt, col.g + (updateG(pos, col.g) - col.g) * dt, 0f, col.a + (updateA(pos, col.a) - col.a) * dt);
+								virtualVertices[i].color = new Color(updateR(pos, col.r), updateG(pos, col.g), 0f, updateA(pos, col.a));
 							}
 						}
 					} else {
@@ -369,13 +368,13 @@ namespace EcoSystem {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(col.r + (updateR(pos, col.r) - col.r) * dt, col.g + (updateG(pos, col.g) - col.g) * dt, col.b + (updateB(pos, col.b) - col.b) * dt);
+								virtualVertices[i].color = new Color(updateR(pos, col.r), updateG(pos, col.g), updateB(pos, col.b));
 							}
 						} else {
 							for (int i = 0; i < virtualVertices.Length; i++) {
 								pos = virtualVertices[i].vertex;
 								col = virtualVertices[i].color;
-								virtualVertices[i].color = new Color(col.r + (updateR(pos, col.r) - col.r) * dt, col.g + (updateG(pos, col.g) - col.g) * dt, col.b + (updateB(pos, col.b) - col.b) * dt, col.a + (updateA(pos, col.a) - col.a) * dt);
+								virtualVertices[i].color = new Color(updateR(pos, col.r), updateG(pos, col.g), updateB(pos, col.b), updateA(pos, col.a));
 							}
 						}
 					}

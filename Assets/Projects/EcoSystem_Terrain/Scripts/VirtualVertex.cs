@@ -3,11 +3,13 @@
 namespace EcoSystem {
 	public class VirtualVertex {
 
+		#region Attributes
 		private Vector3 offset;
 
 		private int[] indices;
 		private MeshData[] meshesData;
 
+		#region Properties
 		public Vector3 vertex {
 			get {
 				return offset + meshesData[0].vertices[indices[0]];
@@ -46,7 +48,10 @@ namespace EcoSystem {
 				}
 			}
 		}
+		#endregion
+		#endregion
 
+		#region Initialization
 		public VirtualVertex(Vector3 offset, int index, MeshData data) {
 			this.offset = offset;
 			indices = new int[1];
@@ -69,7 +74,9 @@ namespace EcoSystem {
 			nMeshesData[meshesData.Length] = data;
 			meshesData = nMeshesData;
 		}
+		#endregion
 
+		#region MeshModification
 		public void AverageNormals() {
 			if (indices.Length < 2) return;
 			Vector3 avgNormal = meshesData[0].normals[indices[0]];
@@ -83,6 +90,7 @@ namespace EcoSystem {
 			}
 		}
 
+		#region ColorChannels
 		public void SetChannel(int chaIndex, float v) {
 			for (int i = 0; i < meshesData.Length; i++) {
 				meshesData[i].colors[indices[i]][chaIndex] = v;
@@ -128,10 +136,14 @@ namespace EcoSystem {
 		public void AddChannelA(float a) {
 			AddChannel(3, a);
 		}
+		#endregion
+		#endregion
 
+		#region Others
 		public override string ToString() {
 			return "Virtual Vertex (" + indices.Length + "):\n  vertex: " + vertex + "\n  normal: " + normal + "\n  color: " + color;
 		}
+		#endregion
 
 	}
 }

@@ -9,13 +9,14 @@ namespace Xenon.Editor {
 		protected override string titleStr { get { return "Timings Debugger"; } }
 
 		private void OnEnable() {
-			EditorApplication.playmodeStateChanged = PlayModeChange;
+			//EditorApplication.playmodeStateChanged = PlayModeChange;
+			EditorApplication.playModeStateChanged += PlayModeChange;
 		}
 
-		private void PlayModeChange() {
-			if (EditorApplication.isPlaying) { // TODO executed after start -> can't see initialiazation timings
+		private void PlayModeChange(PlayModeStateChange change) {
+			if (change == PlayModeStateChange.ExitingEditMode) { // TODO executed after start -> can't see initialiazation timings
 				TimingDebugger.ClearAll();
-				//Debug.Log("Entering playmode: Timings Cleared");
+				//Debug.Log("Exiting editmode: Timings Cleared");
 			}
 		}
 

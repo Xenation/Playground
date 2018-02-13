@@ -6,6 +6,7 @@ namespace EcoSystem {
 	[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
 	public class EChunk : MonoBehaviour {
 
+		#region Attributes
 		private MeshFilter filter;
 		private MeshRenderer meshRenderer;
 		
@@ -29,8 +30,10 @@ namespace EcoSystem {
 		private EChunk front;	// Z+
 		private EChunk right;	// X+
 		private EChunk back;	// Z-
-		private EChunk left;	// X-
+		private EChunk left;    // X-
+		#endregion
 
+		#region Initialization
 		public static EChunk CreateChunk(Transform parent, ETerrainData terrainData, ChunkData data) { // Load Existing
 			GameObject chunkObj = new GameObject("Chunk" + data.pos);
 			chunkObj.transform.parent = parent;
@@ -73,7 +76,9 @@ namespace EcoSystem {
 			data.mesh.GeneratePlane();
 			RebuildCollider();
 		}
+		#endregion
 
+		#region Utilities
 		public void RebuildCollider() {
 			meshCollider = GetComponent<MeshCollider>();
 			meshCollider.sharedMesh = data.mesh;
@@ -95,6 +100,7 @@ namespace EcoSystem {
 		public void SetResolution(int quads) {
 			data.mesh.SetResolution(quads);
 		}
-		
+		#endregion
+
 	}
 }

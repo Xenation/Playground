@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace EcoSystem {
+	#region LocalUtilityClasses
 	public struct Quad {
 		public int itl, itr, ibl, ibr;
 		private MeshData data;
@@ -54,6 +55,7 @@ namespace EcoSystem {
 		}
 
 	}
+	#endregion
 
 	[Serializable]
 	public class MeshData {
@@ -83,6 +85,7 @@ namespace EcoSystem {
 	[Serializable]
 	public class ChunkMesh {
 
+		#region Attributes
 		private Mesh mesh;
 
 		[HideInInspector]
@@ -98,7 +101,9 @@ namespace EcoSystem {
 		}
 		[SerializeField]
 		private int quads = 1;
+		#endregion
 
+		#region Initialization
 		public ChunkMesh(Vector2 size, int quads) {
 			mesh = new Mesh();
 			mesh.MarkDynamic();
@@ -107,7 +112,9 @@ namespace EcoSystem {
 			this.quads = quads;
 			Resync();
 		}
+		#endregion
 
+		#region Synchronisation
 		private void Resync() {
 			data.vertices = mesh.vertices;
 			data.colors = mesh.colors;
@@ -154,7 +161,9 @@ namespace EcoSystem {
 			data.isVertexModified = true;
 			ApplyVertexIndexModifications();
 		}
+		#endregion
 
+		#region Utilities
 		public void GeneratePlane() {
 			mesh.GeneratePlane(size, quads, quads);
 			mesh.RecalculateNormals();
@@ -199,7 +208,9 @@ namespace EcoSystem {
 			quads = nQuads;
 			ResetRelativePositions();
 		}
+		#endregion
 
+		#region Access
 		public float GetHeightAt(Vector2 pos, Vector2 quadSize) {
 			Vector2i quadPos = new Vector2i((int) (pos.x / quadSize.x), (int) (pos.y / quadSize.y));
 			if (quadPos.x >= quads) {
@@ -277,10 +288,13 @@ namespace EcoSystem {
 		public int GetVertexIndex(int vertX, int vertY) {
 			return vertY * (quads + 1) + vertX;
 		}
+		#endregion
 
+		#region Operators
 		public static implicit operator Mesh(ChunkMesh chkMesh) {
 			return chkMesh.mesh;
 		}
+		#endregion
 
 	}
 }

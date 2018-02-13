@@ -5,6 +5,7 @@ namespace EcoSystem {
 	[Serializable]
 	public struct Vector2i {
 
+		#region QuickConstructors
 		public static Vector2i front {
 			get {
 				return new Vector2i(0, 1);
@@ -35,6 +36,7 @@ namespace EcoSystem {
 				return new Vector2i(1, 1);
 			}
 		}
+		#endregion
 
 		public int x, y;
 
@@ -65,6 +67,7 @@ namespace EcoSystem {
 			return "(" + x + ", " + y + ")";
 		}
 
+		#region Operators
 		public static Vector2i operator +(Vector2i a, Vector2i b) {
 			return new Vector2i(a.x + b.x, a.y + b.y);
 		}
@@ -84,6 +87,7 @@ namespace EcoSystem {
 		public static bool operator !=(Vector2i a, Vector2i b) {
 			return (a.x != b.x) || (a.y != b.y);
 		}
+		#endregion
 
 	}
 }

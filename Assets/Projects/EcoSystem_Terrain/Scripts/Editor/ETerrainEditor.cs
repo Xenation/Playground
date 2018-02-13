@@ -9,6 +9,7 @@ namespace EcoSystem {
 	[CustomEditor(typeof(ETerrain))]
 	public class ETerrainEditor : Editor {
 
+		#region ENUMS
 		private enum Tool {
 			RaiseLower,
 			Flatten,
@@ -19,8 +20,9 @@ namespace EcoSystem {
 		private enum Channel : int {
 			R = 0, G = 1, B = 2, A = 3
 		}
+		#endregion
 
-#region ATTRIBUTES
+		#region ATTRIBUTES
 		private ETerrain terrain;
 
 		// TERRAIN PARAMS
@@ -64,8 +66,8 @@ namespace EcoSystem {
 		private GUIStyle vertexDebugStyle;
 		#endregion
 
-#region METHODS
-#region Initialization
+		#region METHODS
+		#region Initialization
 		public void OnEnable() {
 			terrain = (ETerrain) serializedObject.targetObject;
 			if (!EditorApplication.isPlaying) {
@@ -95,9 +97,9 @@ namespace EcoSystem {
 			brushPaintColorProp = serializedObject.FindProperty("brushPaintColor");
 			brushPaintPerChannelProp = serializedObject.FindProperty("brushPaintPerChannel");
 		}
-#endregion
+		#endregion
 
-#region GUI
+		#region GUI
 		public override void OnInspectorGUI() {
 			serializedObject.Update();
 			
@@ -248,9 +250,9 @@ namespace EcoSystem {
 					break;
 			}
 		}
-#endregion
+		#endregion
 
-#region Updating
+		#region Updating
 		private void Update() {
 			if (isPainting) {
 				Brush();
@@ -292,9 +294,9 @@ namespace EcoSystem {
 				Handles.Label(brushCenter, leftDisp, style);
 			}
 		}
-#endregion
+		#endregion
 
-#region Brushes
+		#region Brushes
 		private void Brush() {
 			TimingDebugger.Start("Brush");
 			Dictionary<VirtualVertex, float> inRangeByDist;
@@ -463,9 +465,9 @@ namespace EcoSystem {
 			}
 			TimingDebugger.Stop();
 		}
-#endregion
+		#endregion
 
-#region Inputs
+		#region Inputs
 		private void SceneKeydown(KeyCode key) {
 			if (key == KeyCode.Keypad0) {
 				
@@ -492,8 +494,8 @@ namespace EcoSystem {
 				}
 			}
 		}
-#endregion
-#endregion
+		#endregion
+		#endregion
 
 	}
 }
