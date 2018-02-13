@@ -83,6 +83,52 @@ namespace EcoSystem {
 			}
 		}
 
+		public void SetChannel(int chaIndex, float v) {
+			for (int i = 0; i < meshesData.Length; i++) {
+				meshesData[i].colors[indices[i]][chaIndex] = v;
+				meshesData[i].isColorModified = true;
+			}
+		}
+
+		public void SetChannelR(float r) {
+			SetChannel(0, r);
+		}
+
+		public void SetChannelG(float g) {
+			SetChannel(1, g);
+		}
+
+		public void SetChannelB(float b) {
+			SetChannel(2, b);
+		}
+
+		public void SetChannelA(float a) {
+			SetChannel(3, a);
+		}
+
+		public void AddChannel(int chaIndex, float v) {
+			for (int i = 0; i < meshesData.Length; i++) {
+				meshesData[i].colors[indices[i]][chaIndex] += v;
+				meshesData[i].isColorModified = true;
+			}
+		}
+
+		public void AddChannelR(float r) {
+			AddChannel(0, r);
+		}
+
+		public void AddChannelG(float g) {
+			AddChannel(1, g);
+		}
+
+		public void AddChannelB(float b) {
+			AddChannel(2, b);
+		}
+
+		public void AddChannelA(float a) {
+			AddChannel(3, a);
+		}
+
 		public override string ToString() {
 			return "Virtual Vertex (" + indices.Length + "):\n  vertex: " + vertex + "\n  normal: " + normal + "\n  color: " + color;
 		}

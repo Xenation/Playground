@@ -10,6 +10,7 @@ namespace EcoSystem {
 		private VirtualVertex[] virtualVertices;
 		public int VirtualVertexCount {
 			get {
+				if (virtualVertices == null) return 0;
 				return virtualVertices.Length;
 			}
 		}
@@ -131,14 +132,141 @@ namespace EcoSystem {
 		#region Update/Modif
 		public void UpdateColorChannels() {
 			TimingDebugger.Start("Update Color Channels");
-			for (int i = 0; i < virtualVertices.Length; i++) {
-				virtualVertices[i].color = new Color(updateR(virtualVertices[i].vertex), updateG(virtualVertices[i].vertex), updateB(virtualVertices[i].vertex), updateA(virtualVertices[i].vertex));
+			// Very Unelegant but optimised
+			Vector3 pos;
+			Color col;
+			float dt = Mathf.Clamp01(Time.deltaTime);
+			if (updateR == null) {
+				if (updateG == null) {
+					if (updateB == null) {
+						if (updateA == null) {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								virtualVertices[i].color = new Color(0f, 0f, 0f, 0f);
+							}
+						} else {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								col = virtualVertices[i].color;
+								virtualVertices[i].color = new Color(0f, 0f, 0f, col.a + (updateA(pos) - col.a) * dt);
+							}
+						}
+					} else {
+						if (updateA == null) {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								col = virtualVertices[i].color;
+								virtualVertices[i].color = new Color(0f, 0f, col.b + (updateB(pos) - col.b) * dt, 0f);
+							}
+						} else {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								col = virtualVertices[i].color;
+								virtualVertices[i].color = new Color(0f, 0f, col.b + (updateB(pos) - col.b) * dt, col.a + (updateA(pos) - col.a) * dt);
+							}
+						}
+					}
+				} else {
+					if (updateB == null) {
+						if (updateA == null) {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								col = virtualVertices[i].color;
+								virtualVertices[i].color = new Color(0f, col.g + (updateG(pos) - col.g) * dt, 0f, 0f);
+							}
+						} else {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								col = virtualVertices[i].color;
+								virtualVertices[i].color = new Color(0f, col.g + (updateG(pos) - col.g) * dt, 0f, col.a + (updateA(pos) - col.a) * dt);
+							}
+						}
+					} else {
+						if (updateA == null) {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								col = virtualVertices[i].color;
+								virtualVertices[i].color = new Color(0f, col.g + (updateG(pos) - col.g) * dt, col.b + (updateB(pos) - col.b) * dt, 0f);
+							}
+						} else {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								col = virtualVertices[i].color;
+								virtualVertices[i].color = new Color(0f, col.g + (updateG(pos) - col.g) * dt, col.b + (updateB(pos) - col.b) * dt, col.a + (updateA(pos) - col.a) * dt);
+							}
+						}
+					}
+				}
+			} else {
+				if (updateG == null) {
+					if (updateB == null) {
+						if (updateA == null) {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								col = virtualVertices[i].color;
+								virtualVertices[i].color = new Color(col.r + (updateR(pos) - col.r) * dt, 0f, 0f, 0f);
+							}
+						} else {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								col = virtualVertices[i].color;
+								virtualVertices[i].color = new Color(col.r + (updateR(pos) - col.r) * dt, 0f, 0f, col.a + (updateA(pos) - col.a) * dt);
+							}
+						}
+					} else {
+						if (updateA == null) {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								col = virtualVertices[i].color;
+								virtualVertices[i].color = new Color(col.r + (updateR(pos) - col.r) * dt, 0f, col.b + (updateB(pos) - col.b) * dt, 0f);
+							}
+						} else {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								col = virtualVertices[i].color;
+								virtualVertices[i].color = new Color(col.r + (updateR(pos) - col.r) * dt, 0f, col.b + (updateB(pos) - col.b) * dt, col.a + (updateA(pos) - col.a) * dt);
+							}
+						}
+					}
+				} else {
+					if (updateB == null) {
+						if (updateA == null) {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								col = virtualVertices[i].color;
+								virtualVertices[i].color = new Color(col.r + (updateR(pos) - col.r) * dt, col.g + (updateG(pos) - col.g) * dt, 0f, 0f);
+							}
+						} else {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								col = virtualVertices[i].color;
+								virtualVertices[i].color = new Color(col.r + (updateR(pos) - col.r) * dt, col.g + (updateG(pos) - col.g) * dt, 0f, col.a + (updateA(pos) - col.a) * dt);
+							}
+						}
+					} else {
+						if (updateA == null) {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								col = virtualVertices[i].color;
+								virtualVertices[i].color = new Color(col.r + (updateR(pos) - col.r) * dt, col.g + (updateG(pos) - col.g) * dt, col.b + (updateB(pos) - col.b) * dt);
+							}
+						} else {
+							for (int i = 0; i < virtualVertices.Length; i++) {
+								pos = virtualVertices[i].vertex;
+								col = virtualVertices[i].color;
+								virtualVertices[i].color = new Color(col.r + (updateR(pos) - col.r) * dt, col.g + (updateG(pos) - col.g) * dt, col.b + (updateB(pos) - col.b) * dt, col.a + (updateA(pos) - col.a) * dt);
+							}
+						}
+					}
+				}
 			}
-			TimingDebugger.Start("Apply Colors");
-			foreach (ChunkData chkData in terrain.data.chunks.Values) {
-				chkData.mesh.ApplyColorModifications();
-			}
-			TimingDebugger.Stop();
+			//for (int i = 0; i < virtualVertices.Length; i++) {
+			//	pos = virtualVertices[i].vertex;
+			//	//virtualVertices[i].color = new Color(col.r + (updateR(pos) - col.r) * dt, col.g + (updateG(pos) - col.g) * dt, col.b + (updateB(pos) - col.b) * dt, col.a + (updateA(pos) - col.a) * dt);
+			//	//virtualVertices[i].color = new Color(pos.y / 100f, 0f, (50f - pos.y) / 30f, 0f);
+			//	//virtualVertices[i].color = new Color(TerrainManager.UpdateChannelR(pos), 0f, TerrainManager.UpdateChannelB(pos), 0f);
+			//	//virtualVertices[i].color = new Color(col.r + (updateR(pos) - col.r) * dt, 0f, col.b + (updateB(pos) - col.b) * dt, 0f);
+			//	virtualVertices[i].color = new Color(pos.y / 100f, 0f, (50f - pos.y) / 30f, 0f);
+			//}
 			TimingDebugger.Stop();
 		}
 
@@ -146,6 +274,14 @@ namespace EcoSystem {
 			TimingDebugger.Start("Virtual Mesh Apply");
 			foreach (ChunkData chkData in terrain.data.chunks.Values) {
 				chkData.mesh.ApplyVertexModifications();
+				chkData.mesh.ApplyColorModifications();
+			}
+			TimingDebugger.Stop();
+		}
+
+		public void ApplyColorModifications() {
+			TimingDebugger.Start("Virtual Mesh Apply Colors");
+			foreach (ChunkData chkData in terrain.data.chunks.Values) {
 				chkData.mesh.ApplyColorModifications();
 			}
 			TimingDebugger.Stop();

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using Xenon;
 
 namespace EcoSystem {
@@ -35,28 +36,22 @@ namespace EcoSystem {
 		private void Start() {
 			updateTemperature = DummyUpdateTemperature;
 			updateHumidity = DummyUpdateHumidity;
-			terrain.virtualMesh.updateG = DummyG;
-			terrain.virtualMesh.updateA = DummyA;
 		}
 
 		private void Update() {
 			terrain.virtualMesh.UpdateColorChannels();
 		}
 
+		private void LateUpdate() {
+			terrain.virtualMesh.ApplyColorModifications();
+		}
+
 		private float DummyUpdateTemperature(Vector3 pos) {
 			return pos.y / 100f;
 		}
-
+		
 		private float DummyUpdateHumidity(Vector3 pos) {
 			return (50f - pos.y) / 30f;
-		}
-
-		private float DummyG(Vector3 pos) {
-			return 0f;
-		}
-
-		private float DummyA(Vector3 pos) {
-			return 0f;
 		}
 
 		/// <summary>
@@ -94,6 +89,32 @@ namespace EcoSystem {
 			} else {
 				return -1f;
 			}
+		}
+
+		public void SetTemperatureAt(Vector3 pos, float temp) {
+			VirtualVertex vert = terrain.virtualMesh.GetVertexAtWorldPos(pos);
+			if (vert != null) {
+				vert.SetChannelR(temp);
+			}
+		}
+
+		public void IncreaseTemperatureAt(Vector3 pos, float temp) {
+			TimingDebugger.Start("Increase Temperature At");
+			VirtualVertex vert = terrain.virtualMesh.GetVertexAtWorldPos(pos);
+			if (vert != null) {
+				vert.AddChannelR(temp);
+			}
+			TimingDebugger.Stop();
+		}
+
+		public void IncreaseTemperatureCircleLinear(Vector3 center, float radius, float temp) {
+			TimingDebugger.Start("Increase Temperature Circle");
+			float radiusSqr = Mathf.Pow(radius, 2f);
+			Dictionary<VirtualVertex, float> vertices = terrain.virtualMesh.GetVerticesByDistanceIn2DRange(new Vector2(center.x, center.z), radius);
+			foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
+				pair.Key.AddChannelR(temp * (1f - pair.Value / radiusSqr));
+			}
+			TimingDebugger.Stop();
 		}
 
 	}

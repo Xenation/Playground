@@ -68,7 +68,9 @@ namespace EcoSystem {
 #region Initialization
 		public void OnEnable() {
 			terrain = (ETerrain) serializedObject.targetObject;
-			terrain.LoadData(); // TODO Load at scene load instead of selection of terrain
+			if (!EditorApplication.isPlaying) {
+				terrain.LoadData(); // TODO Load at scene load instead of selection of terrain
+			}
 			InitProperties();
 			toolHash = GetHashCode();
 			vertexDebugStyle = new GUIStyle();
