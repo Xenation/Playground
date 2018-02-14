@@ -133,10 +133,13 @@ namespace EcoSystem {
 		/// <param name="pos">the world position used to find the local humidity (only x,z used)</param>
 		/// <returns>the humidity if the given position was in terrain bounds, -1 otherwise</returns>
 		public float GetHumidityAt(Vector3 pos) { // Humidity encoded in B channel
-			VirtualVertex vert = terrain.virtualMesh.GetVertexAtWorldPos(pos);
-			if (vert != null) {
-				return vert.color.b;
+			TimingDebugger.Start("Get Humidity At");
+			Color col = terrain.GetColorAt(pos);
+			if (col != new Color(-1000, -1000, -1000)) { // TODO not elegant
+				TimingDebugger.Stop();
+				return col.b;
 			} else {
+				TimingDebugger.Stop();
 				return -1f;
 			}
 		}
@@ -147,7 +150,7 @@ namespace EcoSystem {
 		/// <param name="pos">the position used to find the closest vertex (only x,z used)</param>
 		/// <param name="humidity">the new humidity value of the vertex</param>
 		public void SetHumidityAt(Vector3 pos, float humidity) {
-			TimingDebugger.Start("Set Temperature At");
+			TimingDebugger.Start("Set Humidity At");
 			VirtualVertex vert = terrain.virtualMesh.GetVertexAtWorldPos(pos);
 			if (vert != null) {
 				vert.SetChannelB(humidity);
@@ -162,7 +165,7 @@ namespace EcoSystem {
 		/// <param name="radius">The radius of the circle</param>
 		/// <param name="humidity">The humidity at the center of the circle</param>
 		public void SetHumidityCircleLinearNoDecrease(Vector3 center, float radius, float humidity) {
-			TimingDebugger.Start("Set Temperature Circle Linear");
+			TimingDebugger.Start("Set Humidity Circle Linear");
 			float radiusSqr = Mathf.Pow(radius, 2f);
 			Dictionary<VirtualVertex, float> vertices = terrain.virtualMesh.GetVerticesByDistanceIn2DRange(new Vector2(center.x, center.z), radius);
 			float nHum;
@@ -180,7 +183,7 @@ namespace EcoSystem {
 		/// <param name="pos">the position used to find the closest vertex (only x,z used)</param>
 		/// <param name="humidity">the increase in humidity to apply</param>
 		public void IncreaseHumidityAt(Vector3 pos, float humidity) {
-			TimingDebugger.Start("Increase Temperature At");
+			TimingDebugger.Start("Increase Humidity At");
 			VirtualVertex vert = terrain.virtualMesh.GetVertexAtWorldPos(pos);
 			if (vert != null) {
 				vert.AddChannelB(humidity);
@@ -195,7 +198,7 @@ namespace EcoSystem {
 		/// <param name="radius">The radius of the circle</param>
 		/// <param name="humidity">The humidity increase at the center of the circle</param>
 		public void IncreaseHumidityCircleLinear(Vector3 center, float radius, float humidity) {
-			TimingDebugger.Start("Increase Temperature Circle Linear");
+			TimingDebugger.Start("Increase Humidity Circle Linear");
 			float radiusSqr = Mathf.Pow(radius, 2f);
 			Dictionary<VirtualVertex, float> vertices = terrain.virtualMesh.GetVerticesByDistanceIn2DRange(new Vector2(center.x, center.z), radius);
 			foreach (KeyValuePair<VirtualVertex, float> pair in vertices) {
@@ -212,10 +215,13 @@ namespace EcoSystem {
 		/// <param name="pos">the world position used to find the local temperature (only x,z used)</param>
 		/// <returns>the temperature if the given position was in terrain bounds, -1 otherwise</returns>
 		public float GetTemperatureAt(Vector3 pos) { // Temperature encoded in R channel
-			VirtualVertex vert = terrain.virtualMesh.GetVertexAtWorldPos(pos);
-			if (vert != null) {
-				return vert.color.r;
+			TimingDebugger.Start("Get Temperature At");
+			Color col = terrain.GetColorAt(pos);
+			if (col != new Color(-1000, -1000, -1000)) { // TODO not elegant
+				TimingDebugger.Stop();
+				return col.r;
 			} else {
+				TimingDebugger.Stop();
 				return -1f;
 			}
 		}

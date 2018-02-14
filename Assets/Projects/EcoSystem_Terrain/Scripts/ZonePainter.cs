@@ -10,7 +10,7 @@ namespace EcoSystem {
 		public void Update() {
 			if (terrain == null) return;
 			float temp = TerrainManager.I.GetTemperatureAt(transform.position);
-			TerrainManager.I.SetTemperatureCircleLinearNoDecrease(transform.position, range, 1f);
+			TerrainManager.I.SetTemperatureCircleLinearNoDecrease(transform.position, range, 3f);
 		}
 
 	}

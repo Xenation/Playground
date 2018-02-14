@@ -286,6 +286,18 @@ namespace EcoSystem {
 				return -1000f;
 			}
 		}
+
+		public Color GetColorAt(Vector3 worldPos) {
+			worldPos -= transform.position; // to local (unsafe)
+			if (worldPos.x < 0 || worldPos.z < 0) return new Color(-1000, -1000, -1000);
+			Vector2i chkPos = new Vector2i((int) (worldPos.x / chunkSize.x), (int) (worldPos.z / chunkSize.y));
+			ChunkData chk;
+			if (data.chunks.TryGetValue(chkPos, out chk)) {
+				return chk.mesh.GetColorAt(new Vector2(worldPos.x - chkPos.x * chunkSize.x, worldPos.z - chkPos.y * chunkSize.y), chunkSize / actualQuads);
+			} else {
+				return new Color(-1000, -1000, -1000);
+			}
+		}
 		#endregion
 
 	}
